@@ -49,74 +49,31 @@ public class TweetSkyWallpaper extends GLWallpaperService {
 		return new TweetSkyEngine();
 	}
 
-	class TweetSkyEngine extends Engine {
+	class TweetSkyEngine extends GLEngine {
 		
-		private final Runnable mDrawRunnable = new Runnable() {
-			public void run() {
-				drawFrame(true);
-			}
-		};
-		private boolean mVisible;
-
+		private int mWidth;
+		private int mHeight;
+		
+		private final TweetSkyRenderer mRenderer;
+		
 		TweetSkyEngine() {
-			mVisible = true;
-		}
-
-		@Override
-		public void onCreate(SurfaceHolder holder) {
-		}
-		
-		@Override
-		public void onDestroy() {
-			super.onDestroy();
-			mHandler.removeCallbacks(mDrawRunnable);
-		}
-
-		@Override
-		public void onVisibilityChanged(boolean visible) {
-			mVisible = visible;
-			if (visible) {
-				drawFrame(false);
-			} else {
-				mHandler.removeCallbacks(mDrawRunnable);
-			}
+			mRenderer = new TweetSkyRenderer();
+			setRenderer(mRenderer);
+			setRenderMode(RENDERMODE_CONTINUOUSLY);
 		}
 
 		@Override
 		public void onSurfaceChanged(SurfaceHolder holder, int format,
 				int width, int height) {
 			super.onSurfaceChanged(holder, format, width, height);
-			mHeight = height;
 			mWidth = width;
-			
-			drawFrame(false);
+			mHeight = height;
 		}
 
-		@Override
-		public void onSurfaceDestroyed(SurfaceHolder holder) {
-			super.onSurfaceDestroyed(holder);
-			mVisible = false;
-			mHandler.removeCallbacks(mDrawRunnable);
-		}
 
 		@Override
 		public void onOffsetsChanged(float xOffset, float yOffset, float xStep,
 				float yStep, int xPixels, int yPixels) {
-		}
-
-		void update() {
-		}
-
-		void drawFrame(boolean doUpdate) {
-
-			if (doUpdate)
-				update();
-
-			// Reschedule the next redraw
-			mHandler.removeCallbacks(mDrawRunnable);
-			if (mVisible) {
-				mHandler.postDelayed(mDrawRunnable, 1000 / mTimeStep);
-			}
 		}
 	}
 }

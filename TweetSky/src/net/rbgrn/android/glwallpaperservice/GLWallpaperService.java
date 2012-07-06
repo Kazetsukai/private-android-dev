@@ -244,9 +244,12 @@ interface EGLContextFactory {
 }
 
 class DefaultContextFactory implements EGLContextFactory {
-
+	/** MODIFIED: Changed to create an OpenGL ES2.0 Context **/
+    private static int EGL_CONTEXT_CLIENT_VERSION = 0x3098;
+    
 	public EGLContext createContext(EGL10 egl, EGLDisplay display, EGLConfig config) {
-		return egl.eglCreateContext(display, config, EGL10.EGL_NO_CONTEXT, null);
+        int[] attrib_list = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL10.EGL_NONE };
+		return egl.eglCreateContext(display, config, EGL10.EGL_NO_CONTEXT, attrib_list);
 	}
 
 	public void destroyContext(EGL10 egl, EGLDisplay display, EGLContext context) {
