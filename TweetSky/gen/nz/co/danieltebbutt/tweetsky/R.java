@@ -18,8 +18,11 @@ public final class R {
         public static final int ic_launcher=0x7f020004;
         public static final int sky1=0x7f020005;
     }
+    public static final class raw {
+        public static final int shader=0x7f040000;
+    }
     public static final class string {
-        public static final int app_name=0x7f040000;
+        public static final int app_name=0x7f050000;
     }
     public static final class xml {
         public static final int tweetskywallpaper=0x7f030000;

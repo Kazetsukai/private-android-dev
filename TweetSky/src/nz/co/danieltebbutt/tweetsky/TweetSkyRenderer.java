@@ -27,7 +27,7 @@ public class TweetSkyRenderer implements Renderer {
 	int[] mTexture = new int[1];
 	
 	/** Buffer for polygons **/
-	float[] mTriangleCoords;
+	float[] mQuadCoords;
 	FloatBuffer mCoordBuffer;
 	
 	/** Handle for shader program **/
@@ -75,24 +75,27 @@ public class TweetSkyRenderer implements Renderer {
 		GLES20.glViewport(0, 0, width, height);
 
 		Matrix.orthoM(mViewMatrix, 0, 0, width, height, 0, -1, 1);
+		
+		mQuadCoords = new float[] {
+				100.0f, -500.0f, 0.0f,
+				1.0f, 1.0f, 1.0f, 1.0f,
+				
+				-500.0f, 200.0f, 0.0f,
+				1.0f, 0.0f, 0.0f, 1.0f,
+				
+				600.0f, 200.0f, 0.0f,
+				1.0f, 1.0f, 0.0f, 1.0f
+		};
+		
+		mCoordBuffer = ByteBuffer.allocateDirect(mQuadCoords.length * BYTES_PER_FLOAT).order(ByteOrder.nativeOrder()).asFloatBuffer();
+		for (float f : mQuadCoords)
+			mCoordBuffer.put(f);
 	}
 
 	@Override
 	public void onSurfaceCreated(GL10 unused, EGLConfig config) {
-		mTriangleCoords = new float[] {
-				10.0f, -50.0f, 0.0f,
-				1.0f, 1.0f, 1.0f, 1.0f,
-				
-				-50.0f, 20.0f, 0.0f,
-				1.0f, 0.0f, 0.0f, 1.0f,
-				
-				60.0f, 20.0f, 0.0f,
-				1.0f, 1.0f, 0.0f, 1.0f
-		};
 		
-		mCoordBuffer = ByteBuffer.allocateDirect(mTriangleCoords.length * BYTES_PER_FLOAT).order(ByteOrder.nativeOrder()).asFloatBuffer();
-		for (float f : mTriangleCoords)
-			mCoordBuffer.put(f);
+		
 		
 		//GLES20.glEnable(GL10.GL_TEXTURE_2D);
 		//GLES20.glGenTextures(1, mTexture, 0);
@@ -109,6 +112,8 @@ public class TweetSkyRenderer implements Renderer {
 		mPositionHandle = GLES20.glGetAttribLocation(mProgramHandle, POSITION_ATTRIBUTE);
 		mColorHandle = GLES20.glGetAttribLocation(mProgramHandle, COLOR_ATTRIBUTE);
 		mViewMatrixHandle = GLES20.glGetUniformLocation(mProgramHandle, VIEW_MATRIX_ATTRIBUTE);
+		
+		GLES20.glUseProgram(mProgramHandle);
 
 		checkGLError("After surface creation");
 	}
@@ -124,15 +129,12 @@ public class TweetSkyRenderer implements Renderer {
 	 */
 	private void drawTriangle(final FloatBuffer aTriangleBuffer)
 	{
-		checkGLError("Before drawing triangle");
-		
 	    // Pass in the position information
 	    aTriangleBuffer.position(mPositionOffset);
 	    GLES20.glVertexAttribPointer(mPositionHandle, mPositionDataSize, GLES20.GL_FLOAT, false,
 	            mStrideBytes, aTriangleBuffer);
 	 
 	    GLES20.glEnableVertexAttribArray(mPositionHandle);
-	    checkGLError("Enabling position vertex attribute array");
 		
 	    // Pass in the color information
 	    aTriangleBuffer.position(mColorOffset);
@@ -142,7 +144,7 @@ public class TweetSkyRenderer implements Renderer {
 	    GLES20.glEnableVertexAttribArray(mColorHandle);
 		checkGLError("Enabling color vertex attribute array");
 	    
-	    GLES20.glUniformMatrix4fv(mViewMatrixHandle, 16, false, mViewMatrix, 0);
+	    GLES20.glUniformMatrix4fv(mViewMatrixHandle, 1, false, mViewMatrix, 0);
 	    checkGLError("Set view matrix");
 		
 	    GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 3);
