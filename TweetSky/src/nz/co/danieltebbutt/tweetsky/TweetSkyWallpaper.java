@@ -51,9 +51,6 @@ public class TweetSkyWallpaper extends GLWallpaperService {
 
 	class TweetSkyEngine extends GLEngine {
 		
-		private int mWidth;
-		private int mHeight;
-		
 		private final TweetSkyRenderer mRenderer;
 		
 		TweetSkyEngine() {
@@ -66,8 +63,6 @@ public class TweetSkyWallpaper extends GLWallpaperService {
 		public void onSurfaceChanged(SurfaceHolder holder, int format,
 				int width, int height) {
 			super.onSurfaceChanged(holder, format, width, height);
-			mWidth = width;
-			mHeight = height;
 		}
 
 

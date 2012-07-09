@@ -24,7 +24,9 @@ public class TweetSkyRenderer implements Renderer {
 	private static final int BYTES_PER_FLOAT = 4;
 	
 	float[] mViewMatrix = new float[16];
-	int[] mTexture = new int[1];
+	float[] mModelMatrix = new float[16];
+	float[] mMVWMatrix = new float[16];
+	int[] mTexture = new int[3];
 	
 	/** Buffer for polygons **/
 	float[] mQuadCoords;
@@ -59,7 +61,7 @@ public class TweetSkyRenderer implements Renderer {
 
 		GLES20.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
 		
-		drawTriangle(mCoordBuffer);
+		drawScene(mCoordBuffer);
 		
 	}
 
@@ -76,15 +78,47 @@ public class TweetSkyRenderer implements Renderer {
 
 		Matrix.orthoM(mViewMatrix, 0, 0, width, height, 0, -1, 1);
 		
+		float heightIncrement = height / 3.0f;
+		
 		mQuadCoords = new float[] {
-				100.0f, -500.0f, 0.0f,
+				// Sky coords
+				width, 0.0f, 0.0f,
+				0.2f, 0.38f, 0.55f, 1.0f,
+				
+				0.0f, 0.0f, 0.0f,
+				0.2f, 0.38f, 0.55f, 1.0f,
+				
+				width, heightIncrement, 0.0f,
+				0.25f, 0.46f, 0.61f, 1.0f,
+				
+				0.0f, heightIncrement, 0.0f,
+				0.25f, 0.46f, 0.61f, 1.0f,
+				
+				width, heightIncrement * 2, 0.0f,
+				0.37f, 0.55f, 0.68f, 1.0f,
+				
+				0.0f, heightIncrement * 2, 0.0f,
+				0.37f, 0.55f, 0.68f, 1.0f,
+				
+				width, height, 0.0f,
+				0.61f, 0.64f, 0.58f, 1.0f,
+				
+				0.0f, height, 0.0f,
+				0.61f, 0.64f, 0.58f, 1.0f,
+				
+				// Cloud coords
+				-0.5f, -0.5f, 0.0f,
 				1.0f, 1.0f, 1.0f, 1.0f,
 				
-				-500.0f, 200.0f, 0.0f,
-				1.0f, 0.0f, 0.0f, 1.0f,
+				-0.5f, 0.5f, 0.0f,
+				1.0f, 1.0f, 1.0f, 1.0f,
 				
-				600.0f, 200.0f, 0.0f,
-				1.0f, 1.0f, 0.0f, 1.0f
+				0.5f, -0.5f, 0.0f,
+				1.0f, 1.0f, 1.0f, 1.0f,
+				
+				0.5f, 0.5f, 0.0f,
+				1.0f, 1.0f, 1.0f, 1.0f,
+				
 		};
 		
 		mCoordBuffer = ByteBuffer.allocateDirect(mQuadCoords.length * BYTES_PER_FLOAT).order(ByteOrder.nativeOrder()).asFloatBuffer();
@@ -95,10 +129,8 @@ public class TweetSkyRenderer implements Renderer {
 	@Override
 	public void onSurfaceCreated(GL10 unused, EGLConfig config) {
 		
-		
-		
 		//GLES20.glEnable(GL10.GL_TEXTURE_2D);
-		//GLES20.glGenTextures(1, mTexture, 0);
+		//GLES20.glGenTextures(3, mTexture, 0);
 		//GLES20.glBindTexture(0, mTexture[0]);
 		//GLUtils.texImage2D(0, 0, Bitmap.createBitmap(200, 100, Config.ARGB_8888), 0);
 		
@@ -127,7 +159,7 @@ public class TweetSkyRenderer implements Renderer {
 	 *
 	 * @param aTriangleBuffer The buffer containing the vertex data.
 	 */
-	private void drawTriangle(final FloatBuffer aTriangleBuffer)
+	private void drawScene(final FloatBuffer aTriangleBuffer)
 	{
 	    // Pass in the position information
 	    aTriangleBuffer.position(mPositionOffset);
@@ -147,8 +179,18 @@ public class TweetSkyRenderer implements Renderer {
 	    GLES20.glUniformMatrix4fv(mViewMatrixHandle, 1, false, mViewMatrix, 0);
 	    checkGLError("Set view matrix");
 		
-	    GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 3);
-		checkGLError("Draw arrays");
+	    // Draw the sky
+	    GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 8);
+		
+	    // Draw the clouds
+	    for (int i = 0; i < 3; i++) {
+	    	Matrix.setIdentityM(mModelMatrix, 0);
+	    	Matrix.translateM(mModelMatrix, 0, 100 * i + 50, 60 * i + 200, 0);
+	    	Matrix.scaleM(mModelMatrix, 0, 50, 50, 1);
+	    	Matrix.multiplyMM(mMVWMatrix, 0, mViewMatrix, 0, mModelMatrix, 0);
+	    	GLES20.glUniformMatrix4fv(mViewMatrixHandle, 1, false, mMVWMatrix, 0);
+	    	GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 8, 4);
+	    }
 	}
 	
 	public int loadShader(String shaderSource, int shaderType) {
