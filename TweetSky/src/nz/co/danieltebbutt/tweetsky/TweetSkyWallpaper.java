@@ -20,7 +20,6 @@ public class TweetSkyWallpaper extends GLWallpaperService {
 	// Time step in milliseconds
 	private final int mTimeStep = 100;
 
-	private ArrayList<Drawable> mSkies = new ArrayList<Drawable>();
 	private ArrayList<Drawable> mClouds = new ArrayList<Drawable>();
 	
 	@Override
@@ -29,14 +28,6 @@ public class TweetSkyWallpaper extends GLWallpaperService {
 		
 		android.os.Debug.waitForDebugger();
 		
-		Resources res = getResources();
-
-		mSkies.add(res.getDrawable(R.drawable.sky1));
-
-		mClouds.add(res.getDrawable(R.drawable.cloud1));
-		mClouds.add(res.getDrawable(R.drawable.cloud2));
-		mClouds.add(res.getDrawable(R.drawable.cloud3));
-		mClouds.add(res.getDrawable(R.drawable.cloud4));
 	}
 
 	@Override
@@ -46,6 +37,13 @@ public class TweetSkyWallpaper extends GLWallpaperService {
 
 	@Override
 	public Engine onCreateEngine() {
+		
+		Resources res = getResources();
+		mClouds.add(res.getDrawable(R.drawable.cloud1));
+		mClouds.add(res.getDrawable(R.drawable.cloud2));
+		mClouds.add(res.getDrawable(R.drawable.cloud3));
+		mClouds.add(res.getDrawable(R.drawable.cloud4));
+		
 		return new TweetSkyEngine();
 	}
 
@@ -54,7 +52,7 @@ public class TweetSkyWallpaper extends GLWallpaperService {
 		private final TweetSkyRenderer mRenderer;
 		
 		TweetSkyEngine() {
-			mRenderer = new TweetSkyRenderer();
+			mRenderer = new TweetSkyRenderer(mClouds);
 			setRenderer(mRenderer);
 			setRenderMode(RENDERMODE_CONTINUOUSLY);
 		}
