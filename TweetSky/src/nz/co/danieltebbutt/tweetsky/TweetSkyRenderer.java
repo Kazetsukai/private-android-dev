@@ -232,8 +232,6 @@ public class TweetSkyRenderer implements Renderer {
 	    GLES20.glUniformMatrix4fv(mViewMatrixHandleTexture, 1, false, mViewMatrix, 0);
 	    checkGLError("Set view matrix");
 	    
-		GLES20.glEnable(GL10.GL_TEXTURE_2D);
-		checkGLError("Enabling texturing");
 		GLES20.glBindTexture(0, mTexture[0]);
 	    for (int i = 0; i < 3; i++) {
 	    	Matrix.setIdentityM(mModelMatrix, 0);
@@ -243,7 +241,6 @@ public class TweetSkyRenderer implements Renderer {
 	    	GLES20.glUniformMatrix4fv(mViewMatrixHandleTexture, 1, false, mMVWMatrix, 0);
 	    	GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 8, 4);
 	    }
-		GLES20.glDisable(GL10.GL_TEXTURE_2D);
 		checkGLError("Drawing");
 	}
 	
@@ -354,23 +351,29 @@ public class TweetSkyRenderer implements Renderer {
 	
 	final String vertexShaderTexture =
 		    "uniform mat4 u_ViewMatrix;     \n"
-		 
+
 		  + "attribute vec4 a_Position;     \n"
+		  + "attribute vec4 a_Texture;     	\n"
+		  
+		  + "varying vec4 v_Texture;        \n"
 		 
 		  + "void main()                    \n"
 		  + "{                              \n"
+		  + "   v_Texture = a_Texture;      \n"
+		  
 		  + "   gl_Position = u_ViewMatrix  \n"
 		  + "               * a_Position;   \n"
-		  + "   gl_TexCoord[0] = gl_MultiTexCoord0; \n"
 		  + "}                              \n";  
 	
 	final String fragmentShaderTexture =
 		    "precision mediump float;       \n"
 		  + "uniform sampler2D tex;         \n"
+		    		
+		  + "varying vec4 v_Texture;     	\n"
 		                                           
 		  + "void main()                    \n"  
 		  + "{                              \n"
-		  + "   vec4 color = texture2D(tex,gl_TexCoord[0].st);\n"
+		  + "   vec4 color = texture2D(tex,v_Texture.st);\n"
 		  + "   gl_FragColor = color;       \n"
 		  + "}                              \n";
 }
