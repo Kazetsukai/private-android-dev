@@ -148,9 +148,11 @@ public class TweetSkyRenderer implements Renderer {
 	public void onSurfaceCreated(GL10 unused, EGLConfig config) {
 		
 		GLES20.glGenTextures(3, mTexture, 0);
-		GLES20.glBindTexture(0, mTexture[0]);
-		GLUtils.texImage2D(mTexture[0], 0, mCloudBitmaps.get(0), 0);
-		
+		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture[0]);
+    	checkGLError("Binding texture name");
+		GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, mCloudBitmaps.get(0), 0);
+    	checkGLError("Setting texture");
+    	
 		GLES20.glClearColor(0.2f, 0.4f, 0.2f, 1f);
 		
 		// Setup shader program
@@ -232,7 +234,9 @@ public class TweetSkyRenderer implements Renderer {
 	    GLES20.glUniformMatrix4fv(mViewMatrixHandleTexture, 1, false, mViewMatrix, 0);
 	    checkGLError("Set view matrix");
 	    
-		GLES20.glBindTexture(0, mTexture[0]);
+	    GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture[0]);
+		checkGLError("Binding texture");
 	    for (int i = 0; i < 3; i++) {
 	    	Matrix.setIdentityM(mModelMatrix, 0);
 	    	Matrix.translateM(mModelMatrix, 0, 100 * i + 50, 60 * i + 200, 0);
@@ -247,12 +251,14 @@ public class TweetSkyRenderer implements Renderer {
 	public int loadShader(String shaderSource, int shaderType) {
 		// Load in the vertex shader.
 		int shaderHandle = GLES20.glCreateShader(shaderType);
+    	checkGLError("Creating shader handle");
 		String errorInfo = null; 
 		
 		if (shaderHandle != 0)
 		{
 		    // Pass in the shader source.
 		    GLES20.glShaderSource(shaderHandle, shaderSource);
+	    	checkGLError("Passing in shader source");
 		 
 		    // Compile the shader.
 		    GLES20.glCompileShader(shaderHandle);
@@ -311,6 +317,8 @@ public class TweetSkyRenderer implements Renderer {
 		        GLES20.glDeleteProgram(programHandle);
 		        programHandle = 0;
 		    }
+
+	    	checkGLError("Creating shader program");
 		}
 		 
 		if (programHandle == 0)
@@ -373,7 +381,9 @@ public class TweetSkyRenderer implements Renderer {
 		                                           
 		  + "void main()                    \n"  
 		  + "{                              \n"
-		  + "   vec4 color = texture2D(tex,v_Texture.st);\n"
+		  //+ "   vec4 color = texture2D(tex,v_Texture.st);\n"
+		  + "   vec4 color = vec4(0.0, 0.0, 0.0, 1.0);\n"
+		  + "   color.rgb = texture2D(tex,v_Texture.st*10).rgb;\n"
 		  + "   gl_FragColor = color;       \n"
 		  + "}                              \n";
 }
