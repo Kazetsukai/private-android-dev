@@ -381,9 +381,8 @@ public class TweetSkyRenderer implements Renderer {
 		                                           
 		  + "void main()                    \n"  
 		  + "{                              \n"
-		  //+ "   vec4 color = texture2D(tex,v_Texture.st);\n"
 		  + "   vec4 color = vec4(0.0, 0.0, 0.0, 1.0);\n"
-		  + "   color.rgb = texture2D(tex,v_Texture.st*10).rgb;\n"
+		  + "   color.rgb = texture2D(tex,v_Texture.st).rgb;\n"
 		  + "   gl_FragColor = color;       \n"
 		  + "}                              \n";
 }
