@@ -25,6 +25,7 @@ public class TweetSkyRenderer implements Renderer {
 	private static final String COLOR_ATTRIBUTE = "a_Color";
 	private static final String TEXTURE_ATTRIBUTE = "a_Texture";
 	private static final String POSITION_ATTRIBUTE = "a_Position";
+	private static final String TEXTURE_UNIT_ATTRIBUTE = "u_TextureUnit";
 	private static final int BYTES_PER_FLOAT = 4;
 	
 	ArrayList<Bitmap> mCloudBitmaps = new ArrayList<Bitmap>();
@@ -48,6 +49,7 @@ public class TweetSkyRenderer implements Renderer {
 	private int mViewMatrixHandleTexture;
 	private int mTextureHandle;
 	private int mPositionHandleTexture;
+	private int mTextureUnitHandle;
 	
 	/** How many elements per vertex. */
 	private final int mStrideBytes = 7 * BYTES_PER_FLOAT;
@@ -150,6 +152,8 @@ public class TweetSkyRenderer implements Renderer {
 		GLES20.glGenTextures(3, mTexture, 0);
 		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture[0]);
     	checkGLError("Binding texture name");
+    	GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+    	GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
 		GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, mCloudBitmaps.get(0), 0);
     	checkGLError("Setting texture");
     	
@@ -171,6 +175,10 @@ public class TweetSkyRenderer implements Renderer {
 		mPositionHandleTexture = GLES20.glGetAttribLocation(mProgramHandleTexture, POSITION_ATTRIBUTE);
 		mTextureHandle = GLES20.glGetAttribLocation(mProgramHandleTexture, TEXTURE_ATTRIBUTE);
 		mViewMatrixHandleTexture = GLES20.glGetUniformLocation(mProgramHandleTexture, VIEW_MATRIX_ATTRIBUTE);
+		mTextureUnitHandle = GLES20.glGetUniformLocation(mProgramHandleTexture, TEXTURE_UNIT_ATTRIBUTE);
+		
+		GLES20.glUseProgram(mProgramHandleTexture);
+		GLES20.glUniform1i(mTextureUnitHandle, 0);
 
 		checkGLError("After surface creation");
 	}
@@ -214,6 +222,9 @@ public class TweetSkyRenderer implements Renderer {
 	    
 	    // Draw the clouds ///////////////////////////////
 
+	    GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture[0]);
+		
 		GLES20.glUseProgram(mProgramHandleTexture);
 		
 	    // Pass in the position information
@@ -234,9 +245,8 @@ public class TweetSkyRenderer implements Renderer {
 	    GLES20.glUniformMatrix4fv(mViewMatrixHandleTexture, 1, false, mViewMatrix, 0);
 	    checkGLError("Set view matrix");
 	    
-	    GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture[0]);
-		checkGLError("Binding texture");
+	    GLES20.glEnable(GLES20.GL_BLEND);
+	    GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE);
 	    for (int i = 0; i < 3; i++) {
 	    	Matrix.setIdentityM(mModelMatrix, 0);
 	    	Matrix.translateM(mModelMatrix, 0, 100 * i + 50, 60 * i + 200, 0);
@@ -245,6 +255,7 @@ public class TweetSkyRenderer implements Renderer {
 	    	GLES20.glUniformMatrix4fv(mViewMatrixHandleTexture, 1, false, mMVWMatrix, 0);
 	    	GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 8, 4);
 	    }
+	    GLES20.glDisable(GLES20.GL_BLEND);
 		checkGLError("Drawing");
 	}
 	
@@ -375,14 +386,13 @@ public class TweetSkyRenderer implements Renderer {
 	
 	final String fragmentShaderTexture =
 		    "precision mediump float;       \n"
-		  + "uniform sampler2D tex;         \n"
+		  + "uniform sampler2D u_TextureUnit;\n"
 		    		
 		  + "varying vec4 v_Texture;     	\n"
 		                                           
 		  + "void main()                    \n"  
 		  + "{                              \n"
-		  + "   vec4 color = vec4(0.0, 0.0, 0.0, 1.0);\n"
-		  + "   color.rgb = texture2D(tex,v_Texture.st).rgb;\n"
+		  + "   vec4 color = texture2D(u_TextureUnit, v_Texture.st);\n"
 		  + "   gl_FragColor = color;       \n"
 		  + "}                              \n";
 }
