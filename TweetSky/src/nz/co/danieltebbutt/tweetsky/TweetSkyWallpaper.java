@@ -42,6 +42,7 @@ public class TweetSkyWallpaper extends GLWallpaperService {
 		mClouds.add(res.getDrawable(R.drawable.cloud1));
 		mClouds.add(res.getDrawable(R.drawable.cloud2));
 		mClouds.add(res.getDrawable(R.drawable.cloud3));
+		mClouds.add(res.getDrawable(R.drawable.cloud4));
 		
 		return new TweetSkyEngine();
 	}

@@ -33,7 +33,8 @@ public class TweetSkyRenderer implements Renderer {
 	float[] mViewMatrix = new float[16];
 	float[] mModelMatrix = new float[16];
 	float[] mMVWMatrix = new float[16];
-	int[] mTexture = new int[3];
+	int[] mTexture = new int[4];
+	int[][] mTextureSizes = new int[4][2];
 	
 	/** Buffer for polygons **/
 	float[] mQuadCoords;
@@ -149,13 +150,19 @@ public class TweetSkyRenderer implements Renderer {
 	@Override
 	public void onSurfaceCreated(GL10 unused, EGLConfig config) {
 		
-		GLES20.glGenTextures(3, mTexture, 0);
-		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture[0]);
-    	checkGLError("Binding texture name");
-    	GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
-    	GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
-		GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, mCloudBitmaps.get(0), 0);
-    	checkGLError("Setting texture");
+		GLES20.glGenTextures(4, mTexture, 0);
+		
+		for (int i = 0; i < 4; i++) {
+			GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture[i]);
+	    	checkGLError("Binding texture name");
+	    	GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+	    	GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+	    	Bitmap bitmap = mCloudBitmaps.get(i);
+			GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
+			mTextureSizes[i][0] = bitmap.getWidth();
+			mTextureSizes[i][1] = bitmap.getHeight();
+	    	checkGLError("Setting texture");
+		}
     	
 		GLES20.glClearColor(0.2f, 0.4f, 0.2f, 1f);
 		
@@ -223,7 +230,6 @@ public class TweetSkyRenderer implements Renderer {
 	    // Draw the clouds ///////////////////////////////
 
 	    GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture[0]);
 		
 		GLES20.glUseProgram(mProgramHandleTexture);
 		
@@ -247,10 +253,11 @@ public class TweetSkyRenderer implements Renderer {
 	    
 	    GLES20.glEnable(GLES20.GL_BLEND);
 	    GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE);
-	    for (int i = 0; i < 3; i++) {
+	    for (int i = 0; i < 4; i++) {
+	    	GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture[i]);
 	    	Matrix.setIdentityM(mModelMatrix, 0);
 	    	Matrix.translateM(mModelMatrix, 0, 100 * i + 50, 60 * i + 200, 0);
-	    	Matrix.scaleM(mModelMatrix, 0, 50, 50, 1);
+	    	Matrix.scaleM(mModelMatrix, 0, mTextureSizes[i][0] / 10, mTextureSizes[i][1] / 10, 1);
 	    	Matrix.multiplyMM(mMVWMatrix, 0, mViewMatrix, 0, mModelMatrix, 0);
 	    	GLES20.glUniformMatrix4fv(mViewMatrixHandleTexture, 1, false, mMVWMatrix, 0);
 	    	GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 8, 4);
