@@ -29,6 +29,7 @@ public class TweetSkyRenderer implements Renderer {
 	private static final int BYTES_PER_FLOAT = 4;
 	
 	ArrayList<Bitmap> mCloudBitmaps = new ArrayList<Bitmap>();
+	ArrayList<Cloud> mClouds = new ArrayList<Cloud>();
 	
 	float[] mViewMatrix = new float[16];
 	float[] mModelMatrix = new float[16];
@@ -150,45 +151,13 @@ public class TweetSkyRenderer implements Renderer {
 	@Override
 	public void onSurfaceCreated(GL10 unused, EGLConfig config) {
 		
-		GLES20.glGenTextures(4, mTexture, 0);
-		
-		for (int i = 0; i < 4; i++) {
-			GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture[i]);
-	    	checkGLError("Binding texture name");
-	    	GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
-	    	GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
-	    	Bitmap bitmap = mCloudBitmaps.get(i);
-			GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
-			mTextureSizes[i][0] = bitmap.getWidth();
-			mTextureSizes[i][1] = bitmap.getHeight();
-	    	checkGLError("Setting texture");
-		}
-    	
 		GLES20.glClearColor(0.2f, 0.4f, 0.2f, 1f);
-		
-		// Setup shader program
-		int vertexShaderHandle = loadShader(vertexShaderColor, GLES20.GL_VERTEX_SHADER);
-		int fragmentShaderHandle = loadShader(fragmentShaderColor, GLES20.GL_FRAGMENT_SHADER);
-		mProgramHandleColor = createProgram(vertexShaderHandle, fragmentShaderHandle);
-		
-		// Texture shader
-		int texVertexShaderHandle = loadShader(vertexShaderTexture, GLES20.GL_VERTEX_SHADER);
-		int texFragmentShaderHandle = loadShader(fragmentShaderTexture, GLES20.GL_FRAGMENT_SHADER);
-		mProgramHandleTexture = createProgram(texVertexShaderHandle, texFragmentShaderHandle);
-
-		mPositionHandleColor = GLES20.glGetAttribLocation(mProgramHandleColor, POSITION_ATTRIBUTE);
-		mColorHandle = GLES20.glGetAttribLocation(mProgramHandleColor, COLOR_ATTRIBUTE);
-		mViewMatrixHandleColor = GLES20.glGetUniformLocation(mProgramHandleColor, VIEW_MATRIX_ATTRIBUTE);
-		mPositionHandleTexture = GLES20.glGetAttribLocation(mProgramHandleTexture, POSITION_ATTRIBUTE);
-		mTextureHandle = GLES20.glGetAttribLocation(mProgramHandleTexture, TEXTURE_ATTRIBUTE);
-		mViewMatrixHandleTexture = GLES20.glGetUniformLocation(mProgramHandleTexture, VIEW_MATRIX_ATTRIBUTE);
-		mTextureUnitHandle = GLES20.glGetUniformLocation(mProgramHandleTexture, TEXTURE_UNIT_ATTRIBUTE);
-		
-		GLES20.glUseProgram(mProgramHandleTexture);
-		GLES20.glUniform1i(mTextureUnitHandle, 0);
+		loadTextures();
+		loadShaders();
 
 		checkGLError("After surface creation");
 	}
+
 
 	public void release() {
 
@@ -257,7 +226,7 @@ public class TweetSkyRenderer implements Renderer {
 	    	GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture[i]);
 	    	Matrix.setIdentityM(mModelMatrix, 0);
 	    	Matrix.translateM(mModelMatrix, 0, 100 * i + 50, 60 * i + 200, 0);
-	    	Matrix.scaleM(mModelMatrix, 0, mTextureSizes[i][0] / 10, mTextureSizes[i][1] / 10, 1);
+	    	Matrix.scaleM(mModelMatrix, 0, mTextureSizes[i][0] / 5, mTextureSizes[i][1] / 5, 1);
 	    	Matrix.multiplyMM(mMVWMatrix, 0, mViewMatrix, 0, mModelMatrix, 0);
 	    	GLES20.glUniformMatrix4fv(mViewMatrixHandleTexture, 1, false, mMVWMatrix, 0);
 	    	GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 8, 4);
@@ -347,6 +316,45 @@ public class TweetSkyRenderer implements Renderer {
 		{
 			return programHandle;
 		}	
+	}
+	
+	private void loadShaders() {
+		// Setup shader program
+		int vertexShaderHandle = loadShader(vertexShaderColor, GLES20.GL_VERTEX_SHADER);
+		int fragmentShaderHandle = loadShader(fragmentShaderColor, GLES20.GL_FRAGMENT_SHADER);
+		mProgramHandleColor = createProgram(vertexShaderHandle, fragmentShaderHandle);
+		
+		// Texture shader
+		int texVertexShaderHandle = loadShader(vertexShaderTexture, GLES20.GL_VERTEX_SHADER);
+		int texFragmentShaderHandle = loadShader(fragmentShaderTexture, GLES20.GL_FRAGMENT_SHADER);
+		mProgramHandleTexture = createProgram(texVertexShaderHandle, texFragmentShaderHandle);
+
+		mPositionHandleColor = GLES20.glGetAttribLocation(mProgramHandleColor, POSITION_ATTRIBUTE);
+		mColorHandle = GLES20.glGetAttribLocation(mProgramHandleColor, COLOR_ATTRIBUTE);
+		mViewMatrixHandleColor = GLES20.glGetUniformLocation(mProgramHandleColor, VIEW_MATRIX_ATTRIBUTE);
+		mPositionHandleTexture = GLES20.glGetAttribLocation(mProgramHandleTexture, POSITION_ATTRIBUTE);
+		mTextureHandle = GLES20.glGetAttribLocation(mProgramHandleTexture, TEXTURE_ATTRIBUTE);
+		mViewMatrixHandleTexture = GLES20.glGetUniformLocation(mProgramHandleTexture, VIEW_MATRIX_ATTRIBUTE);
+		mTextureUnitHandle = GLES20.glGetUniformLocation(mProgramHandleTexture, TEXTURE_UNIT_ATTRIBUTE);
+		
+		GLES20.glUseProgram(mProgramHandleTexture);
+		GLES20.glUniform1i(mTextureUnitHandle, 0);
+	}
+
+	private void loadTextures() {
+		GLES20.glGenTextures(4, mTexture, 0);
+		
+		for (int i = 0; i < 4; i++) {
+			GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture[i]);
+	    	checkGLError("Binding texture name");
+	    	GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+	    	GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+	    	Bitmap bitmap = mCloudBitmaps.get(i);
+			GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
+			mTextureSizes[i][0] = bitmap.getWidth();
+			mTextureSizes[i][1] = bitmap.getHeight();
+	    	checkGLError("Setting texture");
+		}
 	}
 	
 	final String vertexShaderColor =

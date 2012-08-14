@@ -27,7 +27,6 @@ public class TweetSkyWallpaper extends GLWallpaperService {
 		super.onCreate();
 		
 		android.os.Debug.waitForDebugger();
-		
 	}
 
 	@Override
