@@ -112,8 +112,8 @@ public class TweetSkyRenderer implements Renderer {
 
 		// Recreate clouds to get a good distribution over screen
 		mClouds.clear();
-		for (int i = 0; i < 25; i++) {
-			mClouds.add(Cloud.generateCloud(mCloudBitmaps.size(), -100, mWidth + 300, 0, mHeight - 250, 1, 0.5));
+		for (int i = 0; i < 15; i++) {
+			mClouds.add(Cloud.generateCloud(mCloudBitmaps.size(), -100, mWidth + 300, 0, mHeight - 150, 1, 0.5));
 		}
 
 		Matrix.orthoM(mViewMatrix, 0, 0, width, height, 0, -1, 1);
@@ -258,13 +258,14 @@ public class TweetSkyRenderer implements Renderer {
 	    	cloud.update(0.05);
 	    	if (cloud.getXPosition() > mWidth + 300){
 	    		mRemoveClouds.add(cloud);
-	    		mAddClouds.add(Cloud.generateCloud(mCloudBitmaps.size(), -100, -100, 0, mHeight - 250, 0.5, 1));
+	    		mAddClouds.add(Cloud.generateCloud(mCloudBitmaps.size(), -100, -100, 0, mHeight - 150, 0.5, 1));
 	    	}
 	    	int textureId = cloud.getTextureId();
+	    	float z = (float)cloud.getZPosition();
 	    	GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture[textureId]);
 	    	Matrix.setIdentityM(mModelMatrix, 0);
-	    	Matrix.translateM(mModelMatrix, 0, ((float)cloud.getXPosition() - 200 * mXOffset) * (float)cloud.getZPosition(), (float)cloud.getYPosition(), 0);
-	    	Matrix.scaleM(mModelMatrix, 0, mTextureSizes[textureId][0] / 5, mTextureSizes[textureId][1] / 5, 1);
+	    	Matrix.translateM(mModelMatrix, 0, ((float)cloud.getXPosition() - 100 * mXOffset) * z, (float)cloud.getYPosition(), 0);
+	    	Matrix.scaleM(mModelMatrix, 0, mTextureSizes[textureId][0] / 3.5f * z, mTextureSizes[textureId][1] / 3.5f * z, 1);
 	    	Matrix.multiplyMM(mMVWMatrix, 0, mViewMatrix, 0, mModelMatrix, 0);
 	    	GLES20.glUniformMatrix4fv(mViewMatrixHandleTexture, 1, false, mMVWMatrix, 0);
 	    	GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 8, 4);
