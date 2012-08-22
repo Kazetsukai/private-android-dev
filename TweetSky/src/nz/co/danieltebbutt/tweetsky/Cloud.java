@@ -2,16 +2,18 @@ package nz.co.danieltebbutt.tweetsky;
 
 public class Cloud {
 	
-	public Cloud(int textureId, double x, double y, double velX, double velY) {
+	public Cloud(int textureId, double x, double y, double z, double velX, double velY) {
 		mTextureId = textureId;
 		mXPosition = x;
 		mYPosition = y;
+		mZPosition = z;
 		mXVelocity = velX;
 		mYVelocity = velY;
 	}
 	
 	private double mXPosition;
 	private double mYPosition;
+	private double mZPosition;
 	private double mXVelocity;
 	private double mYVelocity;
 	private int mTextureId;
@@ -33,6 +35,12 @@ public class Cloud {
 	public void setYPosition(double mYPosition) {
 		this.mYPosition = mYPosition;
 	}
+	public double getZPosition() {
+		return mZPosition;
+	}
+	public void setZPosition(double mZPosition) {
+		this.mZPosition = mZPosition;
+	}
 	public double getXVelocity() {
 		return mXVelocity;
 	}
@@ -52,11 +60,12 @@ public class Cloud {
 		this.mTextureId = mTextureId;
 	}
 
-	public static Cloud generateCloud(int numTextures, int minX, int maxX, int minY, int maxY) {
+	public static Cloud generateCloud(int numTextures, double minX, double maxX, double minY, double maxY, double minZ, double maxZ) {
 		return new Cloud(
 				(int)(Math.random() * numTextures),
 				Math.random() * (maxX - minX) + minX,
 				Math.random() * (maxY - minY) + minY,
+				Math.random() * (maxZ - minZ) + minZ,
 				Math.random() * 3 + 1,
 				0);
 				

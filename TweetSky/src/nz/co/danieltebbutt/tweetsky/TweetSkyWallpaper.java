@@ -26,6 +26,12 @@ public class TweetSkyWallpaper extends GLWallpaperService {
 	public void onCreate() {
 		super.onCreate();
 		
+		Resources res = getResources();
+		mClouds.add(res.getDrawable(R.drawable.cloud1));
+		mClouds.add(res.getDrawable(R.drawable.cloud2));
+		mClouds.add(res.getDrawable(R.drawable.cloud3));
+		mClouds.add(res.getDrawable(R.drawable.cloud4));
+		
 		android.os.Debug.waitForDebugger();
 	}
 
@@ -36,13 +42,6 @@ public class TweetSkyWallpaper extends GLWallpaperService {
 
 	@Override
 	public Engine onCreateEngine() {
-		
-		Resources res = getResources();
-		mClouds.add(res.getDrawable(R.drawable.cloud1));
-		mClouds.add(res.getDrawable(R.drawable.cloud2));
-		mClouds.add(res.getDrawable(R.drawable.cloud3));
-		mClouds.add(res.getDrawable(R.drawable.cloud4));
-		
 		return new TweetSkyEngine();
 	}
 
@@ -66,6 +65,7 @@ public class TweetSkyWallpaper extends GLWallpaperService {
 		@Override
 		public void onOffsetsChanged(float xOffset, float yOffset, float xStep,
 				float yStep, int xPixels, int yPixels) {
+			mRenderer.setOffsets(xOffset, yOffset, xStep, yStep, xPixels, yPixels);
 		}
 	}
 }

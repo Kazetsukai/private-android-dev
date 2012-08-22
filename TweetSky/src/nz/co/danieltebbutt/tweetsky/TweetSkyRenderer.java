@@ -5,6 +5,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -30,6 +32,8 @@ public class TweetSkyRenderer implements Renderer {
 	
 	ArrayList<Bitmap> mCloudBitmaps = new ArrayList<Bitmap>();
 	ArrayList<Cloud> mClouds = new ArrayList<Cloud>();
+	ArrayList<Cloud> mRemoveClouds = new ArrayList<Cloud>();
+	ArrayList<Cloud> mAddClouds = new ArrayList<Cloud>();
 	
 	float[] mViewMatrix = new float[16];
 	float[] mModelMatrix = new float[16];
@@ -68,16 +72,16 @@ public class TweetSkyRenderer implements Renderer {
 	private final int mColorDataSize = 4;
 	private final int mTextureDataSize = 4;
 	
+	private int mHeight = 500;
+	private int mWidth = 300;
+	private float mXOffset;
+	private float mYOffset;
+	
 	
 	public TweetSkyRenderer(ArrayList<Drawable> clouds) {
 		
 		for (Drawable d : clouds) {
 			mCloudBitmaps.add(((BitmapDrawable)d).getBitmap());
-		}
-		
-		for (int i = 0; i < 10; i++) {
-			
-			mClouds.add(Cloud.generateCloud(mCloudBitmaps.size(), 0, 300, 0, 500));
 		}
 		
 	}
@@ -100,7 +104,17 @@ public class TweetSkyRenderer implements Renderer {
 
 	@Override
 	public void onSurfaceChanged(GL10 unused, int width, int height) {
+
 		GLES20.glViewport(0, 0, width, height);
+
+		mHeight = height;
+		mWidth = width;
+
+		// Recreate clouds to get a good distribution over screen
+		mClouds.clear();
+		for (int i = 0; i < 25; i++) {
+			mClouds.add(Cloud.generateCloud(mCloudBitmaps.size(), -100, mWidth + 300, 0, mHeight - 250, 1, 0.5));
+		}
 
 		Matrix.orthoM(mViewMatrix, 0, 0, width, height, 0, -1, 1);
 		
@@ -150,18 +164,24 @@ public class TweetSkyRenderer implements Renderer {
 		mCoordBuffer = ByteBuffer.allocateDirect(mQuadCoords.length * BYTES_PER_FLOAT).order(ByteOrder.nativeOrder()).asFloatBuffer();
 		for (float f : mQuadCoords)
 			mCoordBuffer.put(f);
+
 	}
 
 	@Override
 	public void onSurfaceCreated(GL10 unused, EGLConfig config) {
-		
+
 		GLES20.glClearColor(0.2f, 0.4f, 0.2f, 1f);
 		loadTextures();
 		loadShaders();
-
+		
 		checkGLError("After surface creation");
 	}
 
+	public void setOffsets(float xOffset, float yOffset, float xStep,
+			float yStep, int xPixels, int yPixels) {
+		mXOffset = xOffset;
+		mYOffset = yOffset;
+	}
 
 	public void release() {
 
@@ -226,17 +246,37 @@ public class TweetSkyRenderer implements Renderer {
 	    
 	    GLES20.glEnable(GLES20.GL_BLEND);
 	    GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE);
+	    Collections.sort(mClouds, new Comparator<Cloud>() {
+
+			@Override
+			public int compare(Cloud lhs, Cloud rhs) {
+				return Double.compare(lhs.getZPosition(), rhs.getZPosition());
+			} 
+		});
+	    
 	    for (Cloud cloud : mClouds) {
 	    	cloud.update(0.05);
+	    	if (cloud.getXPosition() > mWidth + 300){
+	    		mRemoveClouds.add(cloud);
+	    		mAddClouds.add(Cloud.generateCloud(mCloudBitmaps.size(), -100, -100, 0, mHeight - 250, 0.5, 1));
+	    	}
 	    	int textureId = cloud.getTextureId();
 	    	GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture[textureId]);
 	    	Matrix.setIdentityM(mModelMatrix, 0);
-	    	Matrix.translateM(mModelMatrix, 0, (float)cloud.getXPosition(), (float)cloud.getYPosition(), 0);
+	    	Matrix.translateM(mModelMatrix, 0, ((float)cloud.getXPosition() - 200 * mXOffset) * (float)cloud.getZPosition(), (float)cloud.getYPosition(), 0);
 	    	Matrix.scaleM(mModelMatrix, 0, mTextureSizes[textureId][0] / 5, mTextureSizes[textureId][1] / 5, 1);
 	    	Matrix.multiplyMM(mMVWMatrix, 0, mViewMatrix, 0, mModelMatrix, 0);
 	    	GLES20.glUniformMatrix4fv(mViewMatrixHandleTexture, 1, false, mMVWMatrix, 0);
 	    	GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 8, 4);
 	    }
+	    for (Cloud removeCloud : mRemoveClouds) {
+	    	mClouds.remove(removeCloud);
+	    }
+	    for (Cloud addCloud : mAddClouds) {
+	    	mClouds.add(addCloud);
+	    }
+	    mRemoveClouds.clear();
+	    mAddClouds.clear();
 	    GLES20.glDisable(GLES20.GL_BLEND);
 		checkGLError("Drawing");
 	}
@@ -245,7 +285,7 @@ public class TweetSkyRenderer implements Renderer {
 		// Load in the vertex shader.
 		int shaderHandle = GLES20.glCreateShader(shaderType);
     	checkGLError("Creating shader handle");
-		String errorInfo = null; 
+		String errorInfo = null;
 		
 		if (shaderHandle != 0)
 		{
@@ -416,4 +456,5 @@ public class TweetSkyRenderer implements Renderer {
 		  + "   vec4 color = texture2D(u_TextureUnit, v_Texture.st);\n"
 		  + "   gl_FragColor = color;       \n"
 		  + "}                              \n";
+
 }
