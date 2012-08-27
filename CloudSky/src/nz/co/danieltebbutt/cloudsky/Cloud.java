@@ -1,9 +1,11 @@
 package nz.co.danieltebbutt.cloudsky;
 
+import java.util.ArrayList;
+
 public class Cloud {
 	
-	public Cloud(int textureId, double x, double y, double z, double velX, double velY) {
-		mTextureId = textureId;
+	public Cloud(Texture texture, double x, double y, double z, double velX, double velY) {
+		mTexture = texture;
 		mXPosition = x;
 		mYPosition = y;
 		mZPosition = z;
@@ -16,7 +18,7 @@ public class Cloud {
 	private double mZPosition;
 	private double mXVelocity;
 	private double mYVelocity;
-	private int mTextureId;
+	private Texture mTexture;
 	
 	public void update(double time) {
 		mXPosition += mXVelocity * time;
@@ -53,21 +55,10 @@ public class Cloud {
 	public void setYVelocity(double mYVelocity) {
 		this.mYVelocity = mYVelocity;
 	}
-	public int getTextureId() {
-		return mTextureId;
+	public Texture getTexture() {
+		return mTexture;
 	}
-	public void setTextureId(int mTextureId) {
-		this.mTextureId = mTextureId;
-	}
-
-	public static Cloud generateCloud(int numTextures, double minX, double maxX, double minY, double maxY, double minZ, double maxZ) {
-		return new Cloud(
-				(int)(Math.random() * numTextures),
-				Math.random() * (maxX - minX) + minX,
-				Math.random() * (maxY - minY) + minY,
-				Math.random() * (maxZ - minZ) + minZ,
-				Math.random() * 3 + 1,
-				0);
-				
+	public void setTexture(Texture mTexture) {
+		this.mTexture = mTexture;
 	}
 }

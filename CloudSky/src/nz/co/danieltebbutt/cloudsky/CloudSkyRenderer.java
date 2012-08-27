@@ -31,11 +31,8 @@ public class CloudSkyRenderer implements Renderer {
 	private static final String POSITION_ATTRIBUTE = "a_Position";
 	private static final String TEXTURE_UNIT_ATTRIBUTE = "u_TextureUnit";
 	private static final int BYTES_PER_FLOAT = 4;
-	
-	ArrayList<Bitmap> mCloudBitmaps = new ArrayList<Bitmap>();
-	ArrayList<Cloud> mClouds = new ArrayList<Cloud>();
-	ArrayList<Cloud> mRemoveClouds = new ArrayList<Cloud>();
-	ArrayList<Cloud> mAddClouds = new ArrayList<Cloud>();
+
+	private ArrayList<Texture> mCloudTextures;
 	
 	float[] mViewMatrix = new float[16];
 	float[] mModelMatrix = new float[16];
@@ -79,22 +76,24 @@ public class CloudSkyRenderer implements Renderer {
 	private float mXOffset = 0;
 	private float mYOffset = 0;
 	
-	private CloudLogic mCloudLogic;
+	private CloudScene mCloudScene;
 	
-	public CloudSkyRenderer(ArrayList<Integer> clouds, Resources resources) {
-		
-		mCloudLogic = new CloudLogic();
-		
-		final BitmapFactory.Options options = new BitmapFactory.Options();
-		options.inScaled = false;   // No pre-scaling
-		 
+	public CloudSkyRenderer(ArrayList<Integer> cloudResources, Resources resources) {
 
-		for (Integer i : clouds) {
+		mCloudTextures = new ArrayList<Texture>();
+		
+		for (Integer i : cloudResources) {
 			// Read in the resource
+			final BitmapFactory.Options options = new BitmapFactory.Options();
+			options.inScaled = false; // No pre-scaling
 			final Bitmap bitmap = BitmapFactory.decodeResource(resources, i, options);
-			mCloudBitmaps.add(bitmap);
+			Texture texture = new Texture(bitmap);
+			mCloudTextures.add(texture);
 		}
 		
+		// Create the scene that will decide where clouds go.
+		mCloudScene = new CloudScene(mCloudTextures);
+				
 	}
 	
 	@Override
@@ -102,15 +101,17 @@ public class CloudSkyRenderer implements Renderer {
 		
 		GLES20.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
 		
-		drawScene(mCoordBuffer);
+		drawScene(mCloudScene, mCoordBuffer);
 		
 	}
 
 	private void checkGLError(String msg) {
+		
 		int error;
         while ((error = GLES20.glGetError()) != GLES20.GL_NO_ERROR) {
             Log.e("DT", String.format("%s - GL error: 0x%x", msg, error));
         }
+        
 	}
 
 	@Override
@@ -120,12 +121,6 @@ public class CloudSkyRenderer implements Renderer {
 
 		mHeight = height;
 		mWidth = width;
-
-		// Recreate clouds to get a good distribution over screen
-		mClouds.clear();
-		for (int i = 0; i < 15; i++) {
-			mClouds.add(Cloud.generateCloud(mCloudBitmaps.size(), -100, mWidth + 300, 0, mHeight - 150, 1, 0.5));
-		}
 
 		Matrix.orthoM(mViewMatrix, 0, 0, width, height, 0, -1, 1);
 		
@@ -182,16 +177,23 @@ public class CloudSkyRenderer implements Renderer {
 	public void onSurfaceCreated(GL10 unused, EGLConfig config) {
 
 		GLES20.glClearColor(0.2f, 0.4f, 0.2f, 1f);
-		loadTextures();
+		
+		for (Texture texture : mCloudTextures) {
+			texture.generateGlTexture();
+		}
+		
 		loadShaders();
 		
 		checkGLError("After surface creation");
+		
 	}
 
 	public void setOffsets(float xOffset, float yOffset, float xStep,
 			float yStep, int xPixels, int yPixels) {
+		
 		mXOffset = xOffset;
 		mYOffset = yOffset;
+		
 	}
 
 	public void release() {
@@ -203,8 +205,8 @@ public class CloudSkyRenderer implements Renderer {
 	 *
 	 * @param aTriangleBuffer The buffer containing the vertex data.
 	 */
-	private void drawScene(final FloatBuffer aTriangleBuffer)
-	{
+	private void drawScene(final CloudScene scene, final FloatBuffer aTriangleBuffer) {
+		
 		checkGLError("Before draw scene");
 		
 	    // Draw the sky //////////////////////////////
@@ -223,13 +225,13 @@ public class CloudSkyRenderer implements Renderer {
 	            mStrideBytes, aTriangleBuffer);
 	 
 	    GLES20.glEnableVertexAttribArray(mColorHandle);
-		checkGLError("Enabling color vertex attribute array");
+		//checkGLError("Enabling color vertex attribute array");
 	    
 	    GLES20.glUniformMatrix4fv(mViewMatrixHandleColor, 1, false, mViewMatrix, 0);
-	    checkGLError("Set view matrix");
+	    //checkGLError("Set view matrix");
 		
 	    GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 8);
-	    checkGLError("Drawing sky");
+	    //checkGLError("Drawing sky");
 	    
 	    // Draw the clouds ///////////////////////////////
 
@@ -250,50 +252,51 @@ public class CloudSkyRenderer implements Renderer {
 	            mStrideBytes, aTriangleBuffer);
 	 
 	    GLES20.glEnableVertexAttribArray(mTextureHandle);
-		checkGLError("Enabling texture vertex attribute array");
+		//checkGLError("Enabling texture vertex attribute array");
 	    
 	    GLES20.glUniformMatrix4fv(mViewMatrixHandleTexture, 1, false, mViewMatrix, 0);
-	    checkGLError("Set view matrix");
+	    //checkGLError("Set view matrix");
 	    
 	    GLES20.glEnable(GLES20.GL_BLEND);
 	    GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE);
-	    Collections.sort(mClouds, new Comparator<Cloud>() {
 
-			@Override
-			public int compare(Cloud lhs, Cloud rhs) {
-				return Double.compare(lhs.getZPosition(), rhs.getZPosition());
-			}
-		});
+	    mCloudScene.update(0.05);
 	    
-	    for (Cloud cloud : mClouds) {
-	    	cloud.update(0.05);
-	    	if (cloud.getXPosition() > mWidth + 300){
-	    		mRemoveClouds.add(cloud);
-	    		mAddClouds.add(Cloud.generateCloud(mCloudBitmaps.size(), -100, -100, 0, mHeight - 150, 0.5, 1));
-	    	}
-	    	int textureId = cloud.getTextureId();
+	    // Cache this so all clouds use the same offset
+	    double xOffset = mXOffset;
+	    
+	    for (Cloud cloud : scene.getClouds()) {
+	    	
+	    	Texture texture = cloud.getTexture();
 	    	float z = (float)cloud.getZPosition();
-	    	GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture[textureId]);
+	    	
+	    	// Set the texture
+	    	GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texture.getId());
+	    	
 	    	Matrix.setIdentityM(mModelMatrix, 0);
-	    	Matrix.translateM(mModelMatrix, 0, ((float)cloud.getXPosition() - 100 * mXOffset) * z, (float)cloud.getYPosition(), 0);
-	    	Matrix.scaleM(mModelMatrix, 0, mTextureSizes[textureId][0] / 3.5f * z, mTextureSizes[textureId][1] / 3.5f * z, 1);
+	    	
+	    	// Translate to the location of the cloud
+	    	Matrix.translateM(mModelMatrix, 0, (float)(cloud.getXPosition() * (mWidth * 1.5) - mWidth * 0.5 * xOffset), (float)cloud.getYPosition() * mHeight, 0);
+	    	
+	    	// Scale to the size the cloud should be drawn
+	    	Matrix.scaleM(mModelMatrix, 0, texture.getWidth() / 3.5f * (1 - z / 2), texture.getHeight() / 3.5f * (1 - z / 2), 1);
+	    	
+	    	// Multiply matrix and send to shader
 	    	Matrix.multiplyMM(mMVWMatrix, 0, mViewMatrix, 0, mModelMatrix, 0);
 	    	GLES20.glUniformMatrix4fv(mViewMatrixHandleTexture, 1, false, mMVWMatrix, 0);
+	    	
+	    	// Draw the cloud
 	    	GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 8, 4);
+	    	
 	    }
-	    for (Cloud removeCloud : mRemoveClouds) {
-	    	mClouds.remove(removeCloud);
-	    }
-	    for (Cloud addCloud : mAddClouds) {
-	    	mClouds.add(addCloud);
-	    }
-	    mRemoveClouds.clear();
-	    mAddClouds.clear();
+	    
 	    GLES20.glDisable(GLES20.GL_BLEND);
-		checkGLError("Drawing");
+		//checkGLError("Drawing");
+		
 	}
 	
 	public int loadShader(String shaderSource, int shaderType) {
+		
 		// Load in the vertex shader.
 		int shaderHandle = GLES20.glCreateShader(shaderType);
     	checkGLError("Creating shader handle");
@@ -331,9 +334,11 @@ public class CloudSkyRenderer implements Renderer {
 		{
 			return shaderHandle;
 		}
+		
 	}
 	
 	public int createProgram(int vertexShaderHandle, int fragmentShaderHandle) {
+		
 		// Create a program object and store the handle to it.
 		int programHandle = GLES20.glCreateProgram();
 		
@@ -374,9 +379,11 @@ public class CloudSkyRenderer implements Renderer {
 		{
 			return programHandle;
 		}	
+		
 	}
 	
 	private void loadShaders() {
+		
 		// Setup shader program
 		int vertexShaderHandle = loadShader(vertexShaderColor, GLES20.GL_VERTEX_SHADER);
 		int fragmentShaderHandle = loadShader(fragmentShaderColor, GLES20.GL_FRAGMENT_SHADER);
@@ -397,26 +404,11 @@ public class CloudSkyRenderer implements Renderer {
 		
 		GLES20.glUseProgram(mProgramHandleTexture);
 		GLES20.glUniform1i(mTextureUnitHandle, 0);
-	}
-
-	private void loadTextures() {
-		GLES20.glGenTextures(4, mTexture, 0);
 		
-		for (int i = 0; i < 4; i++) {
-			GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture[i]);
-	    	checkGLError("Binding texture name");
-	    	GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
-	    	GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
-	    	Bitmap bitmap = mCloudBitmaps.get(i);
-			GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
-			mTextureSizes[i][0] = bitmap.getWidth();
-			mTextureSizes[i][1] = bitmap.getHeight();
-	    	checkGLError("Setting texture");
-		}
 	}
 	
 	final String vertexShaderColor =
-		    "uniform mat4 u_ViewMatrix;      \n"     // A constant representing the combined model/view/projection matrix.
+		    "uniform mat4 u_ViewMatrix;     \n"     // A constant representing the combined model/view/projection matrix.
 		 
 		  + "attribute vec4 a_Position;     \n"     // Per-vertex position information we will pass in.
 		  + "attribute vec4 a_Color;        \n"     // Per-vertex color information we will pass in.
@@ -427,7 +419,7 @@ public class CloudSkyRenderer implements Renderer {
 		  + "{                              \n"
 		  + "   v_Color = a_Color;          \n"     // Pass the color through to the fragment shader.
 		                                            // It will be interpolated across the triangle.
-		  + "   gl_Position = u_ViewMatrix   \n"     // gl_Position is a special variable used to store the final position.
+		  + "   gl_Position = u_ViewMatrix  \n"     // gl_Position is a special variable used to store the final position.
 		  + "               * a_Position;   \n"     // Multiply the vertex by the matrix to get the final point in
 		  + "}                              \n";    // normalized screen coordinates.
 	
