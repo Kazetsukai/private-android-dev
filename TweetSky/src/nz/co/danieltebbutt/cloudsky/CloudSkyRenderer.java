@@ -1,4 +1,4 @@
-package nz.co.danieltebbutt.tweetsky;
+package nz.co.danieltebbutt.cloudsky;
 
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
@@ -12,8 +12,10 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import net.rbgrn.android.glwallpaperservice.GLWallpaperService.Renderer;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.opengl.GLES20;
@@ -21,7 +23,7 @@ import android.opengl.GLUtils;
 import android.opengl.Matrix;
 import android.util.Log;
 
-public class TweetSkyRenderer implements Renderer {
+public class CloudSkyRenderer implements Renderer {
 
 	private static final String VIEW_MATRIX_ATTRIBUTE = "u_ViewMatrix";
 	private static final String COLOR_ATTRIBUTE = "a_Color";
@@ -74,14 +76,23 @@ public class TweetSkyRenderer implements Renderer {
 	
 	private int mHeight = 500;
 	private int mWidth = 300;
-	private float mXOffset;
-	private float mYOffset;
+	private float mXOffset = 0;
+	private float mYOffset = 0;
 	
+	private CloudLogic mCloudLogic;
 	
-	public TweetSkyRenderer(ArrayList<Drawable> clouds) {
+	public CloudSkyRenderer(ArrayList<Integer> clouds, Resources resources) {
 		
-		for (Drawable d : clouds) {
-			mCloudBitmaps.add(((BitmapDrawable)d).getBitmap());
+		mCloudLogic = new CloudLogic();
+		
+		final BitmapFactory.Options options = new BitmapFactory.Options();
+		options.inScaled = false;   // No pre-scaling
+		 
+
+		for (Integer i : clouds) {
+			// Read in the resource
+			final Bitmap bitmap = BitmapFactory.decodeResource(resources, i, options);
+			mCloudBitmaps.add(bitmap);
 		}
 		
 	}
@@ -251,7 +262,7 @@ public class TweetSkyRenderer implements Renderer {
 			@Override
 			public int compare(Cloud lhs, Cloud rhs) {
 				return Double.compare(lhs.getZPosition(), rhs.getZPosition());
-			} 
+			}
 		});
 	    
 	    for (Cloud cloud : mClouds) {
@@ -325,19 +336,19 @@ public class TweetSkyRenderer implements Renderer {
 	public int createProgram(int vertexShaderHandle, int fragmentShaderHandle) {
 		// Create a program object and store the handle to it.
 		int programHandle = GLES20.glCreateProgram();
-		 
+		
 		if (programHandle != 0)
 		{
 		    // Bind the vertex shader to the program.
 		    GLES20.glAttachShader(programHandle, vertexShaderHandle);
-		 
+
 		    // Bind the fragment shader to the program.
 		    GLES20.glAttachShader(programHandle, fragmentShaderHandle);
-		 
+
 		    // Bind attributes
 		    GLES20.glBindAttribLocation(programHandle, 0, POSITION_ATTRIBUTE);
 		    GLES20.glBindAttribLocation(programHandle, 1, COLOR_ATTRIBUTE);
-		 
+
 		    // Link the two shaders together into a program.
 		    GLES20.glLinkProgram(programHandle);
 		 

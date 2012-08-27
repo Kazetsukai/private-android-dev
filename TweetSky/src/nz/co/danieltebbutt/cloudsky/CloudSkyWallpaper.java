@@ -1,8 +1,9 @@
-package nz.co.danieltebbutt.tweetsky;
+package nz.co.danieltebbutt.cloudsky;
 
 import java.util.ArrayList;
 
 import net.rbgrn.android.glwallpaperservice.GLWallpaperService;
+import nz.co.danieltebbutt.cloudsky.R;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -13,24 +14,23 @@ import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.view.SurfaceHolder;
 
-public class TweetSkyWallpaper extends GLWallpaperService {
+public class CloudSkyWallpaper extends GLWallpaperService {
 
 	private final Handler mHandler = new Handler();
 
 	// Time step in milliseconds
 	private final int mTimeStep = 100;
 
-	private ArrayList<Drawable> mClouds = new ArrayList<Drawable>();
+	private ArrayList<Integer> mClouds = new ArrayList<Integer>();
 	
 	@Override
 	public void onCreate() {
 		super.onCreate();
 		
-		Resources res = getResources();
-		mClouds.add(res.getDrawable(R.drawable.cloud1));
-		mClouds.add(res.getDrawable(R.drawable.cloud2));
-		mClouds.add(res.getDrawable(R.drawable.cloud3));
-		mClouds.add(res.getDrawable(R.drawable.cloud4));
+		mClouds.add(R.drawable.cloud1);
+		mClouds.add(R.drawable.cloud2);
+		mClouds.add(R.drawable.cloud3);
+		mClouds.add(R.drawable.cloud4);
 		
 		android.os.Debug.waitForDebugger();
 	}
@@ -42,15 +42,15 @@ public class TweetSkyWallpaper extends GLWallpaperService {
 
 	@Override
 	public Engine onCreateEngine() {
-		return new TweetSkyEngine();
+		return new CloudSkyEngine();
 	}
 
-	class TweetSkyEngine extends GLEngine {
+	class CloudSkyEngine extends GLEngine {
 		
-		private final TweetSkyRenderer mRenderer;
+		private final CloudSkyRenderer mRenderer;
 		
-		TweetSkyEngine() {
-			mRenderer = new TweetSkyRenderer(mClouds);
+		CloudSkyEngine() {
+			mRenderer = new CloudSkyRenderer(mClouds, getResources());
 			setRenderer(mRenderer);
 			setRenderMode(RENDERMODE_CONTINUOUSLY);
 		}

@@ -1,4 +1,4 @@
-package nz.co.danieltebbutt.tweetsky;
+package nz.co.danieltebbutt.cloudsky;
 
 public class Cloud {
 	
