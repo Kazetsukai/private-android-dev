@@ -10,7 +10,7 @@ public class CloudScene {
 	double mMinXVelocity = 0.004;
 	
 	// A buffer of space so clouds don't appear or reappear on the screen
-	double mBufferSpace = 0.005;
+	double mBufferSpace = 1;
 	
 	ArrayList<Cloud> mClouds = new ArrayList<Cloud>();
 	ArrayList<Cloud> mRemoveClouds = new ArrayList<Cloud>();
@@ -29,7 +29,7 @@ public class CloudScene {
 		if (mTextures.size() > 0) {
 			// Recreate clouds to get a good distribution over screen
 			mClouds.clear();
-			for (int i = 0; i < 15; i++) {
+			for (int i = 0; i < 30; i++) {
 				mClouds.add(generateCloud());
 			}
 			
@@ -42,10 +42,10 @@ public class CloudScene {
 		
 		for (Cloud cloud : mClouds) {
 	    	cloud.update(timeElapsed);
-	    	if (cloud.getXPosition() > 1 + mBufferSpace) {
+	    	if (getMappedX(cloud.getXPosition(), cloud.getZPosition(), 1) > 1 + mBufferSpace) {
 	    		mRemoveClouds.add(cloud);
 	    		Cloud newCloud = generateCloud();
-	    		newCloud.setXPosition(-mBufferSpace);
+	    		newCloud.setXPosition(getReverseMappedX(-mBufferSpace, newCloud.getZPosition(), 0));
 	    		mAddClouds.add(newCloud);
 	    	}
 		}
@@ -68,13 +68,24 @@ public class CloudScene {
 		return mClouds;
 	}
 	
+
+	public double getMappedX(double x, double z, double xOffset) {
+		return (x - 0.5 - (xOffset - 0.5) / 20) * (5 - z * 4) + 0.5;
+	}
+	
+	public double getReverseMappedX(double mappedX, double z, double xOffset) {
+		return (mappedX - 0.5) / (5 - z * 4) + (xOffset - 0.5) / 20 + 0.5;
+	}
+	
 	private Cloud generateCloud() {
+		
+		double z = (Math.random() * 0.8);
 		
 		return new Cloud(
 				mTextures.get((int)(Math.random() * mTextures.size())),
+				getReverseMappedX(Math.random() * mBufferSpace * 2 - mBufferSpace, z, Math.random()),
 				Math.random(),
-				Math.random(),
-				Math.random(),
+				z,
 				Math.random() * (mMaxXVelocity - mMinXVelocity) + mMinXVelocity,
 				0);
 		

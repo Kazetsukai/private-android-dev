@@ -18,21 +18,15 @@ public class CloudSkyWallpaper extends GLWallpaperService {
 
 	private final Handler mHandler = new Handler();
 
-	// Time step in milliseconds
-	private final int mTimeStep = 100;
-
 	private ArrayList<Integer> mClouds = new ArrayList<Integer>();
 	
 	@Override
 	public void onCreate() {
 		super.onCreate();
 		
-		mClouds.add(R.drawable.cloud1);
-		mClouds.add(R.drawable.cloud2);
-		mClouds.add(R.drawable.cloud3);
-		mClouds.add(R.drawable.cloud4);
-		
-		android.os.Debug.waitForDebugger();
+		mClouds.add(R.drawable.cloud5);
+		mClouds.add(R.drawable.cloud6);
+		mClouds.add(R.drawable.cloud7);
 	}
 
 	@Override

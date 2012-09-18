@@ -30,6 +30,7 @@ public class CloudSkyRenderer implements Renderer {
 	private static final String TEXTURE_ATTRIBUTE = "a_Texture";
 	private static final String POSITION_ATTRIBUTE = "a_Position";
 	private static final String TEXTURE_UNIT_ATTRIBUTE = "u_TextureUnit";
+	private static final String TEXTURE_FACTOR_ATTRIBUTE = "u_Factor";
 	private static final int BYTES_PER_FLOAT = 4;
 
 	private ArrayList<Texture> mCloudTextures;
@@ -55,6 +56,7 @@ public class CloudSkyRenderer implements Renderer {
 	private int mTextureHandle;
 	private int mPositionHandleTexture;
 	private int mTextureUnitHandle;
+	private int mTextureFactorHandle;
 	
 	/** How many elements per vertex. */
 	private final int mStrideBytes = 7 * BYTES_PER_FLOAT;
@@ -75,6 +77,8 @@ public class CloudSkyRenderer implements Renderer {
 	private int mWidth = 300;
 	private float mXOffset = 0;
 	private float mYOffset = 0;
+	
+	private boolean mStarted = false;
 	
 	private CloudScene mCloudScene;
 	
@@ -176,15 +180,19 @@ public class CloudSkyRenderer implements Renderer {
 	@Override
 	public void onSurfaceCreated(GL10 unused, EGLConfig config) {
 
-		GLES20.glClearColor(0.2f, 0.4f, 0.2f, 1f);
-		
-		for (Texture texture : mCloudTextures) {
-			texture.generateGlTexture();
+		if (!mStarted) {
+			GLES20.glClearColor(0.2f, 0.4f, 0.2f, 1f);
+			
+			for (Texture texture : mCloudTextures) {
+				texture.generateGlTexture();
+			}
+			
+			loadShaders();
+			
+			checkGLError("After surface creation");
+			
+			mStarted = true;
 		}
-		
-		loadShaders();
-		
-		checkGLError("After surface creation");
 		
 	}
 
@@ -198,6 +206,15 @@ public class CloudSkyRenderer implements Renderer {
 
 	public void release() {
 
+		int[] ids = new int[mCloudTextures.size()];
+		
+		int i = 0;
+		for (Texture t : mCloudTextures) {
+			ids[i] = t.getId();
+			i++;
+		}
+		
+		GLES20.glDeleteTextures(ids.length, ids, 0);
 	}
 	 
 	/**
@@ -258,9 +275,9 @@ public class CloudSkyRenderer implements Renderer {
 	    //checkGLError("Set view matrix");
 	    
 	    GLES20.glEnable(GLES20.GL_BLEND);
-	    GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE);
+	    GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_COLOR);
 
-	    mCloudScene.update(0.05);
+	    mCloudScene.update(0.02);
 	    
 	    // Cache this so all clouds use the same offset
 	    double xOffset = mXOffset;
@@ -268,18 +285,24 @@ public class CloudSkyRenderer implements Renderer {
 	    for (Cloud cloud : scene.getClouds()) {
 	    	
 	    	Texture texture = cloud.getTexture();
-	    	float z = (float)cloud.getZPosition();
 	    	
 	    	// Set the texture
 	    	GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texture.getId());
 	    	
 	    	Matrix.setIdentityM(mModelMatrix, 0);
 	    	
+	    	// Take a wedge out of the 1.0x1.0 box that clouds are in to simulate perspective
+	    	float mappedXPos = (float)((cloud.getXPosition() - 0.5 - (xOffset - 0.5) / 20) * (10 - cloud.getZPosition() * 8) + 0.5);
+	    	// Further out clouds lower logarithmically
+	    	float mappedYPos = (float)(Math.log10(cloud.getZPosition() * 3 + 1) + 0.3 * cloud.getYPosition());
+	    	// Scale accordingly
+	    	float mappedScale = (float)(1 / Math.log10(cloud.getZPosition() + 1.2) / 6);
+	    	
 	    	// Translate to the location of the cloud
-	    	Matrix.translateM(mModelMatrix, 0, (float)(cloud.getXPosition() * (mWidth * 1.5) - mWidth * 0.5 * xOffset), (float)cloud.getYPosition() * mHeight, 0);
+	    	Matrix.translateM(mModelMatrix, 0, mappedXPos * mWidth, mappedYPos * mHeight, 0);
 	    	
 	    	// Scale to the size the cloud should be drawn
-	    	Matrix.scaleM(mModelMatrix, 0, texture.getWidth() / 3.5f * (1 - z / 2), texture.getHeight() / 3.5f * (1 - z / 2), 1);
+	    	Matrix.scaleM(mModelMatrix, 0, texture.getWidth() / 3.5f * mappedScale, texture.getHeight() / 3.5f * mappedScale, 1);
 	    	
 	    	// Multiply matrix and send to shader
 	    	Matrix.multiplyMM(mMVWMatrix, 0, mViewMatrix, 0, mModelMatrix, 0);
@@ -401,9 +424,11 @@ public class CloudSkyRenderer implements Renderer {
 		mTextureHandle = GLES20.glGetAttribLocation(mProgramHandleTexture, TEXTURE_ATTRIBUTE);
 		mViewMatrixHandleTexture = GLES20.glGetUniformLocation(mProgramHandleTexture, VIEW_MATRIX_ATTRIBUTE);
 		mTextureUnitHandle = GLES20.glGetUniformLocation(mProgramHandleTexture, TEXTURE_UNIT_ATTRIBUTE);
+		mTextureFactorHandle = GLES20.glGetUniformLocation(mProgramHandleTexture, TEXTURE_FACTOR_ATTRIBUTE);
 		
 		GLES20.glUseProgram(mProgramHandleTexture);
 		GLES20.glUniform1i(mTextureUnitHandle, 0);
+		GLES20.glUniform1f(mTextureFactorHandle, 0.8f);
 		
 	}
 	
@@ -452,13 +477,14 @@ public class CloudSkyRenderer implements Renderer {
 	final String fragmentShaderTexture =
 		    "precision mediump float;       \n"
 		  + "uniform sampler2D u_TextureUnit;\n"
+		  + "uniform float u_Factor;        \n"
 		    		
 		  + "varying vec4 v_Texture;     	\n"
 		                                           
 		  + "void main()                    \n"  
 		  + "{                              \n"
 		  + "   vec4 color = texture2D(u_TextureUnit, v_Texture.st);\n"
-		  + "   gl_FragColor = color;       \n"
+		  + "   gl_FragColor = color * u_Factor;\n"
 		  + "}                              \n";
 
 }
