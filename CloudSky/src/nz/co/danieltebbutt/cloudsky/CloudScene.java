@@ -29,7 +29,7 @@ public class CloudScene {
 		if (mTextures.size() > 0) {
 			// Recreate clouds to get a good distribution over screen
 			mClouds.clear();
-			for (int i = 0; i < 30; i++) {
+			for (int i = 0; i < 10; i++) {
 				mClouds.add(generateCloud());
 			}
 			

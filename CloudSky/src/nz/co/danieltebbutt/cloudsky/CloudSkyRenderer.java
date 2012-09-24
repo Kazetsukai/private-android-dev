@@ -296,7 +296,7 @@ public class CloudSkyRenderer implements Renderer {
 	    	// Further out clouds lower logarithmically
 	    	float mappedYPos = (float)(Math.log10(cloud.getZPosition() * 3 + 1) + 0.3 * cloud.getYPosition());
 	    	// Scale accordingly
-	    	float mappedScale = (float)(1 / Math.log10(cloud.getZPosition() + 1.2) / 6);
+	    	float mappedScale = (float)(1 / Math.log10(cloud.getZPosition() + 2.2));
 	    	
 	    	// Translate to the location of the cloud
 	    	Matrix.translateM(mModelMatrix, 0, mappedXPos * mWidth, mappedYPos * mHeight, 0);

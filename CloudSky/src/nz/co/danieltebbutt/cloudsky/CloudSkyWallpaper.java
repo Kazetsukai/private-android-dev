@@ -27,6 +27,10 @@ public class CloudSkyWallpaper extends GLWallpaperService {
 		mClouds.add(R.drawable.cloud5);
 		mClouds.add(R.drawable.cloud6);
 		mClouds.add(R.drawable.cloud7);
+		mClouds.add(R.drawable.cloud8);
+		mClouds.add(R.drawable.cloud9);
+		mClouds.add(R.drawable.cloud10);
+		mClouds.add(R.drawable.cloud11);
 	}
 
 	@Override
