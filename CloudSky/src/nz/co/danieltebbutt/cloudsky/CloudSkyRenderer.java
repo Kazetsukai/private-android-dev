@@ -264,13 +264,13 @@ public class CloudSkyRenderer implements Renderer {
 	    //checkGLError("Set view matrix");
 	    
 	    GLES20.glEnable(GLES20.GL_BLEND);
-	    GLES20.glBlendFunc(GLES20.GL_ONE_MINUS_DST_COLOR, GLES20.GL_ONE);
+	    GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 
 	    mCloudScene.update(0.02);
 
 	    // Change to texture frame buffer and clear it
-		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFrameBuffer[0]);
-    	GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+		//GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFrameBuffer[0]);
+    	//GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 		
 	    // Cache this so all clouds use the same offset
 	    double xOffset = mXOffset;
@@ -306,23 +306,24 @@ public class CloudSkyRenderer implements Renderer {
 	    	
 	    }
 	    
-	    GLES20.glDisable(GLES20.GL_BLEND);
-
+/*
 	    // Change back to default framebuffer
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
+		GLES20.glBlendFunc(GLES20.GL_SRC_COLOR, GLES20.GL_ONE);
 		
 		// Draw the clouds framebuffer
 		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mFrameBufferTexture[0]);
     	Matrix.setIdentityM(mModelMatrix, 0);
-    	Matrix.scaleM(mModelMatrix, 0, mWidth, mHeight, 1);
-    	Matrix.translateM(mModelMatrix, 0, 0.5f, 0.5f, 0.0f);
+    	Matrix.scaleM(mModelMatrix, 0, mWidth, -mHeight, 1);
+    	Matrix.translateM(mModelMatrix, 0, 0.5f, -0.5f, 0.0f);
     	Matrix.multiplyMM(mMVWMatrix, 0, mViewMatrix, 0, mModelMatrix, 0);
     	GLES20.glUniformMatrix4fv(mViewMatrixHandleTexture, 1, false, mMVWMatrix, 0);
     	GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 8, 4);
-		
-		
+	*/
+	    
+	    GLES20.glDisable(GLES20.GL_BLEND);
+	    
 	    checkGLError("After drawing");
-		
 	}
 	
 	public int loadShader(String shaderSource, int shaderType) {
@@ -435,7 +436,7 @@ public class CloudSkyRenderer implements Renderer {
 		
 		GLES20.glUseProgram(mProgramHandleTexture);
 		GLES20.glUniform1i(mTextureUnitHandle, 0);
-		GLES20.glUniform1f(mTextureFactorHandle, 0.8f);
+		GLES20.glUniform1f(mTextureFactorHandle, 1f);
 		
 	}
 	
@@ -490,7 +491,7 @@ public class CloudSkyRenderer implements Renderer {
 		                                            // triangle per fragment.
 		  + "void main()                    \n"     // The entry point for our fragment shader.
 		  + "{                              \n"
-		  + "   gl_FragColor = v_Color;     \n"     // Pass the color directly through the pipeline.
+		  + "   gl_FragColor = v_Color;     \n"
 		  + "}                              \n";	
 	
 	final String vertexShaderTexture =
@@ -519,6 +520,7 @@ public class CloudSkyRenderer implements Renderer {
 		  + "void main()                    \n"  
 		  + "{                              \n"
 		  + "   vec4 color = texture2D(u_TextureUnit, v_Texture.st);\n"
+		  + "   color.rgb = color.rgb / color.a;\n"
 		  + "   gl_FragColor = color * u_Factor;\n"
 		  + "}                              \n";
 
