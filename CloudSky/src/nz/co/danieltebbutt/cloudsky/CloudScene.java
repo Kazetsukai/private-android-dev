@@ -99,6 +99,7 @@ public class CloudScene {
 				return Double.compare(lhs.getZPosition(), rhs.getZPosition());
 			}
 		});
+		Collections.reverse(mClouds);
 		
 	}
 }
