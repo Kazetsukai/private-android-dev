@@ -38,8 +38,6 @@ public class CloudSkyRenderer implements Renderer {
 	float[] mViewMatrix = new float[16];
 	float[] mModelMatrix = new float[16];
 	float[] mMVWMatrix = new float[16];
-	int[] mFrameBufferTexture = new int[1];
-	int[] mFrameBuffer = new int[1];
 	
 	/** Buffer for polygons **/
 	float[] mQuadCoords;
@@ -183,8 +181,6 @@ public class CloudSkyRenderer implements Renderer {
 		if (!mStarted) {
 			GLES20.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 			
-			createFrameBuffer();
-			
 			for (Texture texture : mCloudTextures) {
 				texture.generateGlTexture();
 			}
@@ -267,10 +263,6 @@ public class CloudSkyRenderer implements Renderer {
 	    GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 
 	    mCloudScene.update(0.02);
-
-	    // Change to texture frame buffer and clear it
-		//GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFrameBuffer[0]);
-    	//GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 		
 	    // Cache this so all clouds use the same offset
 	    double xOffset = mXOffset;
@@ -305,21 +297,6 @@ public class CloudSkyRenderer implements Renderer {
 	    	GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 8, 4);
 	    	
 	    }
-	    
-/*
-	    // Change back to default framebuffer
-		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
-		GLES20.glBlendFunc(GLES20.GL_SRC_COLOR, GLES20.GL_ONE);
-		
-		// Draw the clouds framebuffer
-		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mFrameBufferTexture[0]);
-    	Matrix.setIdentityM(mModelMatrix, 0);
-    	Matrix.scaleM(mModelMatrix, 0, mWidth, -mHeight, 1);
-    	Matrix.translateM(mModelMatrix, 0, 0.5f, -0.5f, 0.0f);
-    	Matrix.multiplyMM(mMVWMatrix, 0, mViewMatrix, 0, mModelMatrix, 0);
-    	GLES20.glUniformMatrix4fv(mViewMatrixHandleTexture, 1, false, mMVWMatrix, 0);
-    	GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 8, 4);
-	*/
 	    
 	    GLES20.glDisable(GLES20.GL_BLEND);
 	    
@@ -438,34 +415,6 @@ public class CloudSkyRenderer implements Renderer {
 		GLES20.glUniform1i(mTextureUnitHandle, 0);
 		GLES20.glUniform1f(mTextureFactorHandle, 1f);
 		
-	}
-	
-	private void createFrameBuffer() {
-		
-		// Generate texture for framebuffer
-		GLES20.glGenTextures(1, mFrameBufferTexture, 0);
-		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mFrameBufferTexture[0]);
-		GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
-		GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
-		GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
-		GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
-		GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, mWidth, mHeight, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
-		// Clean up afterwards
-		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
-		
-		// Generate framebuffer and attach texture to it
-		GLES20.glGenFramebuffers(1, mFrameBuffer, 0);
-		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFrameBuffer[0]);
-		GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0, GLES20.GL_TEXTURE_2D, mFrameBufferTexture[0], 0);
-
-		int status = GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER);
-		checkGLError("Framebuffer error");
-		if (status != GLES20.GL_FRAMEBUFFER_COMPLETE)
-			throw new RuntimeException("Failed to create Framebuffer Object: Framebuffer status = " + status);
-		
-		
-		// Clean up afterwards
-		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
 	}
 	
 	final String vertexShaderColor =
