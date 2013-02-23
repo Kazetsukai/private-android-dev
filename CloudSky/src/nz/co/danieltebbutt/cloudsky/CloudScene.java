@@ -15,18 +15,16 @@ public class CloudScene {
 	ArrayList<Cloud> mClouds = new ArrayList<Cloud>();
 	ArrayList<Cloud> mRemoveClouds = new ArrayList<Cloud>();
 	ArrayList<Cloud> mAddClouds = new ArrayList<Cloud>();
-	ArrayList<Texture> mTextures = new ArrayList<Texture>();
 	
-	public CloudScene(ArrayList<Texture> textures) {
+	public CloudScene() {
 		
-		mTextures = textures;
 		generateScene();
 		
 	}
 	
 	public void generateScene() {
 		
-		if (mTextures.size() > 0) {
+		/*if (mTextures.size() > 0) {
 			// Recreate clouds to get a good distribution over screen
 			mClouds.clear();
 			for (int i = 0; i < 10; i++) {
@@ -34,7 +32,7 @@ public class CloudScene {
 			}
 			
 			sortClouds();
-		}
+		}*/
 		
 	}
 
@@ -82,7 +80,6 @@ public class CloudScene {
 		double z = (Math.random() * 0.8);
 		
 		return new Cloud(
-				mTextures.get((int)(Math.random() * mTextures.size())),
 				getReverseMappedX(Math.random() * mBufferSpace * 2 - mBufferSpace, z, Math.random()),
 				Math.random(),
 				z,

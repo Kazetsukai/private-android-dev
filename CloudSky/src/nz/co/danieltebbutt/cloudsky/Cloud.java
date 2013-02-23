@@ -4,8 +4,7 @@ import java.util.ArrayList;
 
 public class Cloud {
 	
-	public Cloud(Texture texture, double x, double y, double z, double velX, double velY) {
-		mTexture = texture;
+	public Cloud(double x, double y, double z, double velX, double velY) {
 		mXPosition = x;
 		mYPosition = y;
 		mZPosition = z;
@@ -18,7 +17,6 @@ public class Cloud {
 	private double mZPosition;
 	private double mXVelocity;
 	private double mYVelocity;
-	private Texture mTexture;
 	
 	public void update(double time) {
 		mXPosition += mXVelocity * time;
@@ -54,11 +52,5 @@ public class Cloud {
 	}
 	public void setYVelocity(double mYVelocity) {
 		this.mYVelocity = mYVelocity;
-	}
-	public Texture getTexture() {
-		return mTexture;
-	}
-	public void setTexture(Texture mTexture) {
-		this.mTexture = mTexture;
 	}
 }
