@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
+import rajawali.materials.TextureInfo;
+
 public class CloudScene {
 
 	double mMaxXVelocity = 0.006;
@@ -16,7 +18,11 @@ public class CloudScene {
 	ArrayList<Cloud> mRemoveClouds = new ArrayList<Cloud>();
 	ArrayList<Cloud> mAddClouds = new ArrayList<Cloud>();
 	
-	public CloudScene() {
+	ArrayList<TextureInfo> mTextures = new ArrayList<TextureInfo>();
+	
+	public CloudScene(ArrayList<TextureInfo> textures) {
+		
+		mTextures = textures;
 		
 		generateScene();
 		
@@ -24,15 +30,16 @@ public class CloudScene {
 	
 	public void generateScene() {
 		
-		/*if (mTextures.size() > 0) {
+		if (mTextures.size() > 0) {
 			// Recreate clouds to get a good distribution over screen
 			mClouds.clear();
 			for (int i = 0; i < 10; i++) {
-				mClouds.add(generateCloud());
+				Cloud c = generateCloud();
+				mClouds.add(c);
 			}
 			
 			sortClouds();
-		}*/
+		}
 		
 	}
 
@@ -80,12 +87,17 @@ public class CloudScene {
 		double z = (Math.random() * 0.8);
 		
 		return new Cloud(
+				getRandomTexture(),
 				getReverseMappedX(Math.random() * mBufferSpace * 2 - mBufferSpace, z, Math.random()),
 				Math.random(),
 				z,
 				Math.random() * (mMaxXVelocity - mMinXVelocity) + mMinXVelocity,
 				0);
 		
+	}
+	
+	private TextureInfo getRandomTexture() {
+		return mTextures.get((int)(Math.random() * mTextures.size()));
 	}
 	
 	private void sortClouds() {

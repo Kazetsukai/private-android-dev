@@ -4,6 +4,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -38,40 +40,32 @@ public class CloudSkyRenderer extends RajawaliRenderer {
 	
 	private CloudScene mCloudScene;
 	
-	private SimpleMaterial mMaterial;
 	private TextureManager mTextureManager;
 	private ArrayList<TextureInfo> mTextures;
+	private ArrayList<Integer> mCloudResources;
+	
+	private Map<Cloud, Plane> mCloudPlanes;
 
 	
 	public CloudSkyRenderer(Context context, ArrayList<Integer> cloudResources) {
 
 		super(context);
 		
-		Debug.waitForDebugger();
+		//Debug.waitForDebugger();
 		
-		Resources res = context.getResources();
+		Resources res = mContext.getResources();
 		
 		mTextureManager = new TextureManager();
 		mTextures = new ArrayList<TextureInfo>();
-		
-		for (Integer i : cloudResources) {
-			// Read in the resource
-			final BitmapFactory.Options options = new BitmapFactory.Options();
-			options.inScaled = false; // No pre-scaling
-			final Bitmap bitmap = BitmapFactory.decodeResource(res, i, options);
-			mTextures.add(mTextureManager.addTexture(bitmap));
-		}
-		
+		mCloudResources = cloudResources;
 		
 		setCamera(new Camera2D());
 		setFrameRate(30);
 		
-		// Create the scene that will decide where clouds go.
-		mCloudScene = new CloudScene();
 	}
 	
 	 
-	private void drawScene(final CloudScene scene, final FloatBuffer aTriangleBuffer) {
+	private void updateScene(final CloudScene scene) {
 		
 	    mCloudScene.update(0.02);
 		
@@ -80,27 +74,72 @@ public class CloudSkyRenderer extends RajawaliRenderer {
 	    
 	    for (Cloud cloud : scene.getClouds()) {
 	    	
-	    	// Draw the cloud
+	    	// Update the cloud
+	    	Plane plane = mCloudPlanes.get(cloud);
+	    	if (plane == null) 
+	    		mCloudPlanes.remove(cloud);
+	    	else
+	    	{
+	    		// Take a wedge out of the 1.0x1.0 box that clouds are in to simulate perspective
+	    		float mappedXPos = (float)((cloud.getXPosition() - 0.5 - (xOffset - 0.5) / 20) * (10 - cloud.getZPosition() * 8) + 0.5);
+	    		// Further out clouds lower logarithmically
+	    		float mappedYPos = (float)(Math.log10(cloud.getZPosition() * 3 + 1) + 0.3 * cloud.getYPosition());
+	    		// Scale accordingly
+	    		float mappedScale = (float)(1 / Math.log10(cloud.getZPosition() + 2.2));
+
+	    		plane.setScale(mappedScale);
+	    		plane.setPosition(mappedXPos, mappedYPos, (float)cloud.getZPosition());
+	    	}
 	    	
 	    }
 	    
 	}
 	
 	@Override
+	public void onOffsetsChanged(float xOffset, float yOffset, float xStep,
+							float yStep, int xPixels, int yPixels) {
+			 		
+			mXOffset = xOffset;
+			mYOffset = yOffset;
+			
+	}
+
+	@Override
 	public void initScene() {
 		super.initScene();
+
+		Resources res = mContext.getResources();
 		
-		mMaterial = new SimpleMaterial();
+		for (Integer i : mCloudResources) {
+			// Read in the resource
+			final BitmapFactory.Options options = new BitmapFactory.Options();
+			options.inScaled = false; // No pre-scaling
+			final Bitmap bitmap = BitmapFactory.decodeResource(res, i, options);
+			mTextures.add(mTextureManager.addTexture(bitmap));
+		}
+
+		// Create the scene that will decide where clouds go.
+		mCloudScene = new CloudScene(mTextures);
 		
-		Plane plane = new Plane(1,1,1,1,1);
-		plane.setMaterial(mMaterial);
-		plane.addTexture(mTextures.get(0));
-		addChild(plane);
+		mCloudPlanes = new HashMap<Cloud, Plane>();
+		
+		for (Cloud c : mCloudScene.getClouds()) {
+			TextureInfo texture = c.getTexture();
+			SimpleMaterial material = new SimpleMaterial();
+			Plane plane = new Plane(texture.getWidth() / 2000f, texture.getHeight() / 2000f, 1, 1, 1);
+			plane.setTransparent(true);
+			plane.setMaterial(material);
+			plane.addTexture(texture);
+			mCloudPlanes.put(c, plane);
+			addChild(plane);
+		}
 	}
 	
 	@Override
 	public void onDrawFrame(GL10 glUnused) {
 		super.onDrawFrame(glUnused);
+		
+		updateScene(mCloudScene);
 	}
 	
 	
