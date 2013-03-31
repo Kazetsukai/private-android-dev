@@ -15,28 +15,24 @@ import android.graphics.PixelFormat;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.view.SurfaceHolder;
 
 public class CloudSkyWallpaper extends Wallpaper {
 
 	private ArrayList<Integer> mClouds = new ArrayList<Integer>();
-	
-	@Override
-	public void onCreate() {
-		super.onCreate();
-		
-		mClouds.add(R.drawable.cloud12);
-		mClouds.add(R.drawable.cloud13);
-		mClouds.add(R.drawable.cloud14);
-	}
 
 	@Override
 	public Engine onCreateEngine() {
 		
-		SharedPreferences prefs = getSharedPreferences("Preferences", 0);
+		mClouds.add(R.drawable.cloud12);
+		mClouds.add(R.drawable.cloud13);
+		mClouds.add(R.drawable.cloud14);
 		
-		Context context = getApplicationContext();
-		
-		return new WallpaperEngine(prefs, context, new CloudSkyRenderer(context, mClouds));
+		return new WallpaperEngine(
+			PreferenceManager.getDefaultSharedPreferences(getApplicationContext()), 
+			getApplicationContext(), 
+			new CloudSkyRenderer(getApplicationContext(), mClouds)
+		);
 	}
 }
