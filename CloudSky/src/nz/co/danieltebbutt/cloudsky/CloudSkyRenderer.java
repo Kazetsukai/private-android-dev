@@ -21,6 +21,7 @@ import android.util.Log;
 
 import rajawali.Camera2D;
 import rajawali.wallpaper.Wallpaper;
+import rajawali.materials.AMaterial;
 import rajawali.materials.SimpleMaterial;
 import rajawali.materials.TextureInfo;
 import rajawali.materials.TextureManager;
@@ -67,13 +68,13 @@ public class CloudSkyRenderer extends RajawaliRenderer {
 	    	else
 	    	{
 	    		// Take a wedge out of the 1.0x1.0 box that clouds are in to simulate perspective
-	    		float mappedXPos = 0;//(float)((cloud.getXPosition() - 0.5 - (xOffset - 0.5) / 20) * (10 - cloud.getZPosition() * 8) + 0.5);
+	    		float mappedXPos = (float)((cloud.getXPosition() - 0.5 - (xOffset - 0.5) / 20) * (10 - cloud.getZPosition() * 8) + 0.5);
 	    		// Further out clouds lower logarithmically
-	    		float mappedYPos = 0;//(float)(Math.log10(cloud.getZPosition() * 3 + 1) + 0.3 * cloud.getYPosition());
+	    		float mappedYPos = (float)(Math.log10(cloud.getZPosition() * 3 + 1) + 0.3 * cloud.getYPosition() - 0.5);
 	    		// Scale accordingly
 	    		float mappedScale = (float)(1 / Math.log10(cloud.getZPosition() + 2.2));
 
-	    		//plane.setScale(mappedScale);
+	    		plane.setScale(mappedScale);
 	    		plane.setPosition(mappedXPos, mappedYPos, (float)cloud.getZPosition());
 	    	}
 	    	
@@ -94,6 +95,7 @@ public class CloudSkyRenderer extends RajawaliRenderer {
 		
 		setCamera(new Camera2D());
 		setFrameRate(30);
+		setBackgroundColor(0.2f, 0.3f, 0.7f, 1.0f);
 
 		Resources res = mContext.getResources();
 		
@@ -113,12 +115,9 @@ public class CloudSkyRenderer extends RajawaliRenderer {
 		
 		for (Cloud c : mCloudScene.getClouds()) {
 			TextureInfo texture = c.getTexture();
-			SimpleMaterial material = new SimpleMaterial();
+			AMaterial material = new UnpreblendMaterial();
 			Plane plane = new Plane(texture.getWidth() / 2000f, texture.getHeight() / 2000f, 1, 1, 1);
 			plane.setMaterial(material);
-			//plane.setColor(0xff00ff00);
-			//plane.setColor(0xffffffff);
-			//material.setUseColor(true);
 			plane.setTransparent(true);
 			plane.addTexture(texture);
 			mCloudPlanes.put(c, plane);
@@ -128,7 +127,7 @@ public class CloudSkyRenderer extends RajawaliRenderer {
 	
 	@Override
 	public void onDrawFrame(GL10 glUnused) {
-		//updateScene(mCloudScene);
+		updateScene(mCloudScene);
 		
 		super.onDrawFrame(glUnused);
 	}
