@@ -22,11 +22,6 @@ public class Cloud {
 	private double mYVelocity;
 	private TextureInfo mTexture;
 	
-	public void update(double time) {
-		mXPosition += mXVelocity * time;
-		mYPosition += mYVelocity * time;
-	}
-	
 	public double getXPosition() {
 		return mXPosition;
 	}

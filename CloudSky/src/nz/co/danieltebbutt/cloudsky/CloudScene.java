@@ -6,17 +6,24 @@ import java.util.Comparator;
 
 import rajawali.materials.TextureInfo;
 
+import android.os.Debug;
+import android.util.Log;
+
 public class CloudScene {
 
 	double mMaxXVelocity = 0.006;
 	double mMinXVelocity = 0.004;
+	double mSpeedFactor = 1;
 	
 	// A buffer of space so clouds don't appear or reappear on the screen
 	double mBufferSpace = 1;
 	
+	// Cloud perspective properties
+	public double mFanout = 1.7; // Difference in width between 0 and 1 depth
+	public double mCloudSize = 0.5; // Cloud size as proportion of box width
+	public double mScreenWidth = 0.5; // Proportion of bounding space shown on the screen
+	
 	ArrayList<Cloud> mClouds = new ArrayList<Cloud>();
-	ArrayList<Cloud> mRemoveClouds = new ArrayList<Cloud>();
-	ArrayList<Cloud> mAddClouds = new ArrayList<Cloud>();
 	
 	ArrayList<TextureInfo> mTextures = new ArrayList<TextureInfo>();
 	
@@ -38,77 +45,78 @@ public class CloudScene {
 				mClouds.add(c);
 			}
 			
-			sortClouds();
 		}
 		
 	}
 
-	public void update(double timeElapsed) {
+	public boolean update(double timeElapsed) {
+
+		//Log.d("Elapsed Time", timeElapsed + "");
 		
-		for (Cloud cloud : mClouds) {
-	    	cloud.update(timeElapsed);
-	    	if (getMappedX(cloud.getXPosition(), cloud.getZPosition(), 1) > 1 + mBufferSpace) {
-	    		mRemoveClouds.add(cloud);
-	    		Cloud newCloud = generateCloud();
-	    		newCloud.setXPosition(getReverseMappedX(-mBufferSpace, newCloud.getZPosition(), 0));
-	    		mAddClouds.add(newCloud);
+		boolean changed = false;
+		
+	    int length = mClouds.size();
+		for (int i = 0; i < length; i++) {
+			
+			Cloud cloud = mClouds.get(i);
+			
+			cloud.setXPosition(cloud.getXPosition() + cloud.getXVelocity() * timeElapsed);
+
+	    	if (convertBoxToBoundingSpace((cloud.getXPosition() - mCloudSize), cloud.getZPosition()) > 1) {
+	    		
+	    		double mappedXPos = convertBoxToBoundingSpace(cloud.getXPosition(), cloud.getZPosition()); 
+	    		System.out.println("OldPos: " + ((int)(mappedXPos*100) / 100.0));
+	    		generateNewCloudPosition(cloud);
+	    		
+	    		mappedXPos = convertBoxToBoundingSpace(cloud.getXPosition(), cloud.getZPosition());
+	    		System.out.println("NewPos: " + ((int)(mappedXPos*100) / 100.0));
+	    		
+	    		changed = true;
 	    	}
 		}
-		
-	    for (Cloud removeCloud : mRemoveClouds) {
-	    	mClouds.remove(removeCloud);
-	    }
-	    mRemoveClouds.clear();
 	    
-	    for (Cloud addCloud : mAddClouds) {
-	    	mClouds.add(addCloud);
-	    }
-	    mAddClouds.clear();
-	    
-	    sortClouds();
-	    
+		return changed;
 	}
-	
+
 	public ArrayList<Cloud> getClouds() {
 		return mClouds;
 	}
 	
 
-	public double getMappedX(double x, double z, double xOffset) {
-		return (x - 0.5 - (xOffset - 0.5) / 20) * (5 - z * 4) + 0.5;
+	public double convertBoxToBoundingSpace(double x, double depth) {
+		return x * fanoutAtDepth(depth);
 	}
 	
-	public double getReverseMappedX(double mappedX, double z, double xOffset) {
-		return (mappedX - 0.5) / (5 - z * 4) + (xOffset - 0.5) / 20 + 0.5;
+	public double convertBoundingSpaceToBox(double mappedX, double depth) {
+		return mappedX / fanoutAtDepth(depth);
+	}
+	
+	private double fanoutAtDepth(double depth) {
+		return 1 + (1 - depth) * mFanout;
 	}
 	
 	private Cloud generateCloud() {
 		
-		double z = (Math.random() * 0.8);
+		double z = (Math.random() * 0.8) + 0.2;
 		
 		return new Cloud(
 				getRandomTexture(),
-				getReverseMappedX(Math.random() * mBufferSpace * 2 - mBufferSpace, z, Math.random()),
+				convertBoundingSpaceToBox(Math.random() * 2 - 1, z),
 				Math.random(),
 				z,
 				Math.random() * (mMaxXVelocity - mMinXVelocity) + mMinXVelocity,
-				0);
+				0);	
+	}
+
+	private void generateNewCloudPosition(Cloud cloud) {
+		double z = (Math.random() * 0.8);
 		
+		cloud.setXPosition(convertBoundingSpaceToBox(-1-convertBoxToBoundingSpace(mCloudSize/2, z), z));
+		cloud.setYPosition(Math.random());
+		cloud.setZPosition(z);
 	}
 	
 	private TextureInfo getRandomTexture() {
 		return mTextures.get((int)(Math.random() * mTextures.size()));
-	}
-	
-	private void sortClouds() {
-		
-		Collections.sort(mClouds, new Comparator<Cloud>() {
-			@Override
-			public int compare(Cloud lhs, Cloud rhs) {
-				return Double.compare(lhs.getZPosition(), rhs.getZPosition());
-			}
-		});
-		Collections.reverse(mClouds);
-		
 	}
 }
