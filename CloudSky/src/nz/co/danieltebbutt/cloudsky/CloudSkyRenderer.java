@@ -103,9 +103,14 @@ public class CloudSkyRenderer extends RajawaliRenderer {
 	    		// Further out clouds lower logarithmically
 	    		float mappedYPos = (float)(Math.log10(cloud.getZPosition() * 3 + 1) + 0.3 * cloud.getYPosition() - 0.5);
 	    		// Scale accordingly
-	    		float mappedScale = (float)mCloudScene.convertBoxToBoundingSpace(cloud.getTexture().getWidth() / mBiggestTextureWidth * mCloudScene.mCloudSize, cloud.getZPosition());
+	    		float mappedScale = (float)(mCloudScene.convertBoxToBoundingSpace(cloud.getTexture().getWidth() / mBiggestTextureWidth * mCloudScene.mCloudSize, cloud.getZPosition()) / mCloudScene.mScreenWidth);
 	    		
-	    		plane.setScale(mappedScale / (float)mCloudScene.mScreenWidth);
+	    		float aspectRatio = 1;
+	    		if (mViewportHeight != 0)
+	    			aspectRatio = mViewportWidth / (float)mViewportHeight;
+	    		
+	    		
+	    		plane.setScale(mappedScale, mappedScale * aspectRatio, mappedScale);
 	    		plane.setPosition(((mappedXPos / 2) / (float)mCloudScene.mScreenWidth), mappedYPos, -(float)cloud.getZPosition());
 	    	}	
 	    }
@@ -164,6 +169,8 @@ public class CloudSkyRenderer extends RajawaliRenderer {
 			createPlaneForCloud(c);
 		}
 
+		createBackgroundPlane();
+		
 		updateScene(mCloudScene);
 		sortPlanes();
 	}
@@ -178,6 +185,13 @@ public class CloudSkyRenderer extends RajawaliRenderer {
 		plane.addTexture(texture);
 		mCloudPlanes.put(c, plane);
 		addChild(plane);
+	}
+	
+	private void createBackgroundPlane() {
+		Plane plane = new Plane(1, 1, 1, 5);
+		SimpleMaterial material = new SimpleMaterial();
+		// MAKE A SHADER THAT TAKES COLOURS, INTERPOLATE
+		//material.setShaders(vertexShader, fragmentShader)
 	}
 	
 	@Override
