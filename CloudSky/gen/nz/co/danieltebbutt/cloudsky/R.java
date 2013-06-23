@@ -11,10 +11,11 @@ public final class R {
     public static final class attr {
     }
     public static final class drawable {
-        public static final int cloud12=0x7f020000;
-        public static final int cloud13=0x7f020001;
-        public static final int cloud14=0x7f020002;
-        public static final int ic_launcher=0x7f020003;
+        public static final int background1=0x7f020000;
+        public static final int cloud12=0x7f020001;
+        public static final int cloud13=0x7f020002;
+        public static final int cloud14=0x7f020003;
+        public static final int ic_launcher=0x7f020004;
     }
     public static final class raw {
         public static final int bumpmap_material_fragment=0x7f040000;

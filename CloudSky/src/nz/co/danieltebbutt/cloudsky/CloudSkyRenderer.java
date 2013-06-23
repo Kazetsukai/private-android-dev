@@ -39,16 +39,17 @@ public class CloudSkyRenderer extends RajawaliRenderer {
 	
 	private CloudScene mCloudScene;
 	
-	private ArrayList<TextureInfo> mTextures;
+	private ArrayList<TextureInfo> mCloudTextures;
 	private ArrayList<Integer> mCloudResources;
 	private float mBiggestTextureWidth = 1024;
+	private TextureInfo mBackgroundTexture;
 	
 	private Map<Cloud, Plane> mCloudPlanes;
 
 	private Camera2D mCamera;
 
 	private long mLastMilliseconds = 0;
-	
+
 	private class PlaneComparator implements Comparator<BaseObject3D> {
 
 		@Override
@@ -64,7 +65,7 @@ public class CloudSkyRenderer extends RajawaliRenderer {
 		
 		//Debug.waitForDebugger();
 		
-		mTextures = new ArrayList<TextureInfo>();
+		mCloudTextures = new ArrayList<TextureInfo>();
 		mCloudResources = cloudResources;
 		mLastMilliseconds = SystemClock.uptimeMillis();
 		
@@ -109,6 +110,8 @@ public class CloudSkyRenderer extends RajawaliRenderer {
 	    		if (mViewportHeight != 0)
 	    			aspectRatio = mViewportWidth / (float)mViewportHeight;
 	    		
+	    		if (aspectRatio > 1)
+	    			mappedScale /= aspectRatio;
 	    		
 	    		plane.setScale(mappedScale, mappedScale * aspectRatio, mappedScale);
 	    		plane.setPosition(((mappedXPos / 2) / (float)mCloudScene.mScreenWidth), mappedYPos, -(float)cloud.getZPosition());
@@ -152,16 +155,14 @@ public class CloudSkyRenderer extends RajawaliRenderer {
 		Resources res = mContext.getResources();
 		
 		for (Integer i : mCloudResources) {
-			// Read in the resource
-			final BitmapFactory.Options options = new BitmapFactory.Options();
-			options.inScaled = false; // No pre-scaling
-			options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-			final Bitmap bitmap = BitmapFactory.decodeResource(res, i, options);
-			mTextures.add(mTextureManager.addTexture(bitmap));
+			TextureInfo texture = addTextureFromResource(res, i);
+			mCloudTextures.add(texture);
 		}
 
+		mBackgroundTexture = addTextureFromResource(res, R.drawable.background1);
+		
 		// Create the scene that will decide where clouds go.
-		mCloudScene = new CloudScene(mTextures);
+		mCloudScene = new CloudScene(mCloudTextures);
 		
 		mCloudPlanes = new HashMap<Cloud, Plane>();
 		
@@ -173,6 +174,17 @@ public class CloudSkyRenderer extends RajawaliRenderer {
 		
 		updateScene(mCloudScene);
 		sortPlanes();
+	}
+
+
+	private TextureInfo addTextureFromResource(Resources contextResources,
+			Integer resource) {
+		// Read in the resource
+		final BitmapFactory.Options options = new BitmapFactory.Options();
+		options.inScaled = false; // No pre-scaling
+		options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+		final Bitmap bitmap = BitmapFactory.decodeResource(contextResources, resource, options);
+		return mTextureManager.addTexture(bitmap);
 	}
 
 
@@ -188,10 +200,13 @@ public class CloudSkyRenderer extends RajawaliRenderer {
 	}
 	
 	private void createBackgroundPlane() {
-		Plane plane = new Plane(1, 1, 1, 5);
+		TextureInfo texture = mBackgroundTexture;
+		Plane plane = new Plane(1, 1, 1, 1);
 		SimpleMaterial material = new SimpleMaterial();
-		// MAKE A SHADER THAT TAKES COLOURS, INTERPOLATE
-		//material.setShaders(vertexShader, fragmentShader)
+		plane.setMaterial(material);
+		plane.addTexture(texture);
+		plane.setPosition(0, 0, -2);
+		addChild(plane);
 	}
 	
 	@Override
