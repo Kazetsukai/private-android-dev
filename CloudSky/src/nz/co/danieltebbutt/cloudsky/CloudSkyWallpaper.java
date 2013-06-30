@@ -25,10 +25,11 @@ public class CloudSkyWallpaper extends Wallpaper {
 	@Override
 	public Engine onCreateEngine() {
 		
-		mClouds.add(R.drawable.cloud12);
-		mClouds.add(R.drawable.cloud13);
-		mClouds.add(R.drawable.cloud14);
-		
+		mClouds.add(R.drawable.lightcloud1);
+		mClouds.add(R.drawable.lightcloud2);
+		mClouds.add(R.drawable.lightcloud3);
+		mClouds.add(R.drawable.lightcloud4);
+			
 		return new WallpaperEngine(
 			PreferenceManager.getDefaultSharedPreferences(getApplicationContext()), 
 			getApplicationContext(), 
