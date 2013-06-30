@@ -20,8 +20,8 @@ public class CloudScene {
 	
 	// Cloud perspective properties
 	public double mFanout = 1.7; // Difference in width between 0 and 1 depth
-	public double mCloudSize = 0.5; // Cloud size as proportion of box width
-	public double mScreenWidth = 0.5; // Proportion of bounding space shown on the screen
+	public double mCloudSize = 0.8; // Cloud size as proportion of box width
+	public double mScreenWidth = 0.7; // Proportion of bounding space shown on the screen
 	
 	ArrayList<Cloud> mClouds = new ArrayList<Cloud>();
 	
@@ -109,7 +109,8 @@ public class CloudScene {
 	}
 
 	private void generateNewCloudPosition(Cloud cloud) {
-		double z = (Math.random() * 0.8);
+
+		double z = (Math.random() * 0.8) + 0.2;
 		
 		cloud.setXPosition(convertBoundingSpaceToBox(-1-convertBoxToBoundingSpace(mCloudSize/2, z), z));
 		cloud.setYPosition(Math.random());

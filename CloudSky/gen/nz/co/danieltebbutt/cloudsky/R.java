@@ -17,6 +17,8 @@ public final class R {
         public static final int lightcloud2=0x7f020003;
         public static final int lightcloud3=0x7f020004;
         public static final int lightcloud4=0x7f020005;
+        public static final int lightcloud5=0x7f020006;
+        public static final int lightcloud6=0x7f020007;
     }
     public static final class raw {
         public static final int bumpmap_material_fragment=0x7f040000;

@@ -29,6 +29,8 @@ public class CloudSkyWallpaper extends Wallpaper {
 		mClouds.add(R.drawable.lightcloud2);
 		mClouds.add(R.drawable.lightcloud3);
 		mClouds.add(R.drawable.lightcloud4);
+		mClouds.add(R.drawable.lightcloud5);
+		mClouds.add(R.drawable.lightcloud6);
 			
 		return new WallpaperEngine(
 			PreferenceManager.getDefaultSharedPreferences(getApplicationContext()), 
