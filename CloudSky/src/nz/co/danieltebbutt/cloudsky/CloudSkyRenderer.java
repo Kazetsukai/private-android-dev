@@ -17,6 +17,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.os.Debug;
@@ -30,6 +31,7 @@ import rajawali.materials.AMaterial;
 import rajawali.materials.SimpleMaterial;
 import rajawali.materials.TextureInfo;
 import rajawali.materials.TextureManager;
+import rajawali.math.Number3D;
 import rajawali.primitives.Plane;
 import rajawali.renderer.RajawaliRenderer;
 
@@ -101,8 +103,8 @@ public class CloudSkyRenderer extends RajawaliRenderer {
 	    	else
 	    	{
 	    		float mappedXPos = (float)mCloudScene.convertBoxToBoundingSpace(cloud.getXPosition() - cloudOffset, cloud.getZPosition());
-	    		// Further out clouds lower logarithmically
-	    		float mappedYPos = (float)(Math.log10(cloud.getZPosition() * 3 + 1) + 0.3 * cloud.getYPosition() - 0.5);
+	    		// Further out clouds lower
+	    		float mappedYPos = (float)(cloud.getYPosition() * 0.3 - cloud.getZPosition() * 0.5 + 0.1);
 	    		// Scale accordingly
 	    		float mappedScale = (float)(mCloudScene.convertBoxToBoundingSpace(cloud.getTexture().getWidth() / mBiggestTextureWidth * mCloudScene.mCloudSize, cloud.getZPosition()) / mCloudScene.mScreenWidth);
 	    		
@@ -115,6 +117,9 @@ public class CloudSkyRenderer extends RajawaliRenderer {
 	    		
 	    		plane.setScale(mappedScale, mappedScale * aspectRatio, mappedScale);
 	    		plane.setPosition(((mappedXPos / 2) / (float)mCloudScene.mScreenWidth), mappedYPos, -(float)cloud.getZPosition());
+	    		
+	    		float zFactor = (float) (cloud.getZPosition()) * 2;
+	    		plane.setColor(Color.argb((int)(zFactor * 255), 0, 0, 0));
 	    	}	
 	    }
 	}

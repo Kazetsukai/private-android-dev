@@ -13,10 +13,12 @@ public class UnpreblendMaterial extends AMaterial {
 			"attribute vec4 aColor;\n" +
 
 			"varying vec2 vTextureCoord;\n" +
+			"varying vec4 vColor;\n" +
 			
 			"void main() {\n" +
 			"	gl_Position = uMVPMatrix * aPosition;\n" +
 			"	vTextureCoord = aTextureCoord;\n" +
+			"	vColor = aColor;\n" +
 			"}\n";
 		
 		protected static final String mFShader = 
@@ -24,11 +26,13 @@ public class UnpreblendMaterial extends AMaterial {
 
 			"varying float fZPos;\n" +		
 			"varying vec2 vTextureCoord;\n" +
+			"varying vec4 vColor;\n" +
 			"uniform sampler2D uDiffuseTexture;\n" +
 
 			"void main() {\n" +
 			"	gl_FragColor = texture2D(uDiffuseTexture, vTextureCoord);\n" +
 			"   gl_FragColor.rgb = (gl_FragColor.rgb * 0.9) / gl_FragColor.a;\n" +
+			"   gl_FragColor.rgb = (gl_FragColor.rgb + vColor.aaa) / (1.0 + vColor.a);\n" +
 			"}\n";
 		
 		public UnpreblendMaterial() {
