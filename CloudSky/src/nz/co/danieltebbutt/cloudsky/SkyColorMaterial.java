@@ -3,39 +3,37 @@ package nz.co.danieltebbutt.cloudsky;
 import rajawali.materials.AMaterial;
 import rajawali.materials.SimpleMaterial;
 
-public class UnpreblendMaterial extends AMaterial {
+public class SkyColorMaterial extends AMaterial {
 
 	protected static final String mVShader = 
 		"uniform mat4 uMVPMatrix;\n" +
-
+		"uniform vec3 uColor0;\n" +
+		"uniform vec3 uColor1;\n" +
+		"uniform vec3 uColor2;\n" +
+		"uniform vec3 uColor3;\n" +
+		"uniform vec3 uColor4;\n" +
+				
 		"attribute vec4 aPosition;\n" +
 		"attribute vec2 aTextureCoord;\n" +
 		"attribute vec4 aColor;\n" +
 
-		"varying vec2 vTextureCoord;\n" +
 		"varying vec4 vColor;\n" +
 		
 		"void main() {\n" +
 		"	gl_Position = uMVPMatrix * aPosition;\n" +
-		"	vTextureCoord = aTextureCoord;\n" +
-		"	vColor = aColor;\n" +
+		"	vColor = ;\n" +
 		"}\n";
 		
 	protected static final String mFShader = 
 		"precision mediump float;\n" +
-
-		"varying float fZPos;\n" +		
-		"varying vec2 vTextureCoord;\n" +
+		
 		"varying vec4 vColor;\n" +
-		"uniform sampler2D uDiffuseTexture;\n" +
 
 		"void main() {\n" +
-		"	gl_FragColor = texture2D(uDiffuseTexture, vTextureCoord);\n" +
-		"   gl_FragColor.rgb = (gl_FragColor.rgb * 0.9) / gl_FragColor.a;\n" +
-		"   gl_FragColor.rgb = (gl_FragColor.rgb + vColor.aaa + 0.2) / (1.0 + vColor.a * 2.0);\n" + // This line could have brightness etc added to it
+		"   gl_FragColor = vColor\n" +
 		"}\n";
 	
-	public UnpreblendMaterial() {
+	public SkyColorMaterial() {
 		super(mVShader, mFShader, false);
 		setShaders();
 	}

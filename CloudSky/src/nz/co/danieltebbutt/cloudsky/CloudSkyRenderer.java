@@ -118,7 +118,7 @@ public class CloudSkyRenderer extends RajawaliRenderer {
 	    		plane.setScale(mappedScale, mappedScale * aspectRatio, mappedScale);
 	    		plane.setPosition(((mappedXPos / 2) / (float)mCloudScene.mScreenWidth), mappedYPos, -(float)cloud.getZPosition());
 	    		
-	    		float zFactor = (float) (cloud.getZPosition()) * 2;
+	    		float zFactor = (float) (cloud.getZPosition() - 0.2) / 2;// * 2;
 	    		plane.setColor(Color.argb((int)(zFactor * 255), 0, 0, 0));
 	    	}	
 	    }
