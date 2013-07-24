@@ -169,13 +169,14 @@ public class CloudSkyRenderer extends RajawaliRenderer {
 		// Create the scene that will decide where clouds go.
 		mCloudScene = new CloudScene(mCloudTextures);
 		
+		createBackgroundPlane();
+		
 		mCloudPlanes = new HashMap<Cloud, Plane>();
 		
 		for (Cloud c : mCloudScene.getClouds()) {
 			createPlaneForCloud(c);
 		}
 
-		createBackgroundPlane();
 		
 		updateScene(mCloudScene);
 		sortPlanes();
@@ -207,7 +208,7 @@ public class CloudSkyRenderer extends RajawaliRenderer {
 	private void createBackgroundPlane() {
 		TextureInfo texture = mBackgroundTexture;
 		Plane plane = new Plane(1, 1, 1, 1);
-		SimpleMaterial material = new SimpleMaterial();
+		AMaterial material = new SkyColorMaterial();
 		plane.setMaterial(material);
 		plane.addTexture(texture);
 		plane.setPosition(0, 0, -2);
