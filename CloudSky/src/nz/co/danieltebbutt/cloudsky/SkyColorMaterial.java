@@ -23,7 +23,7 @@ public class SkyColorMaterial extends AMaterial {
 		
 		"void main() {\n" +
 		"	gl_Position = uMVPMatrix * aPosition;\n" +
-		"	float pos = aPosition.x;\n" +
+		"	float pos = aPosition.y + 0.5;\n" +
 		"	float num = NUM_COLORS - 1.0;\n" +
 		"	vColor = uColor0 * min(max(1.0 - abs(pos * num), 0.0), 1.0) +\n" +
 		"			 uColor1 * min(max(1.0 - abs(pos * num - 1.0), 0.0), 1.0) +\n" +
@@ -44,11 +44,21 @@ public class SkyColorMaterial extends AMaterial {
 	public SkyColorMaterial() {
 		super(mVShader, mFShader, false);
 		setShaders();
-		getUniformLocation("uColor0");
-		GLES20.glUniform4f(getUniformLocation("uColor0"), 1, 0, 0, 1);
-		GLES20.glUniform4f(getUniformLocation("uColor1"), 1, 1, 1, 1);
-		GLES20.glUniform4f(getUniformLocation("uColor2"), 1, 1, 0, 1);
-		GLES20.glUniform4f(getUniformLocation("uColor3"), 1, 1, 1, 1);
-		GLES20.glUniform4f(getUniformLocation("uColor4"), 1, 0, 1, 1);
+		updateColours();
+	}
+	
+	@Override
+	public void reload() {
+		super.reload();
+		updateColours();
+	}
+	
+	void updateColours() {
+		this.useProgram();
+		GLES20.glUniform4f(getUniformLocation("uColor0"), 1, 1, 1, 1);
+		GLES20.glUniform4f(getUniformLocation("uColor1"), 0, 0, 0, 0);
+		GLES20.glUniform4f(getUniformLocation("uColor2"), 0, 0, 0, 0);
+		GLES20.glUniform4f(getUniformLocation("uColor3"), 0, 0, 0, 0);
+		GLES20.glUniform4f(getUniformLocation("uColor4"), 0, 0, 0, 0);
 	}
 }
