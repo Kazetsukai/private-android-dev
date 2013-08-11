@@ -207,7 +207,7 @@ public class CloudSkyRenderer extends RajawaliRenderer {
 	
 	private void createBackgroundPlane() {
 		TextureInfo texture = mBackgroundTexture;
-		Plane plane = new Plane(1, 1, 1, 1);
+		Plane plane = new Plane(1, 1, 40, 40);
 		AMaterial material = new SkyColorMaterial();
 		plane.setMaterial(material);
 		plane.addTexture(texture);

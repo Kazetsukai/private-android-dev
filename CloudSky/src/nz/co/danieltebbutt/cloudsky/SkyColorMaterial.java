@@ -55,10 +55,10 @@ public class SkyColorMaterial extends AMaterial {
 	
 	void updateColours() {
 		this.useProgram();
-		GLES20.glUniform4f(getUniformLocation("uColor0"), 1, 1, 1, 1);
-		GLES20.glUniform4f(getUniformLocation("uColor1"), 0, 0, 0, 0);
-		GLES20.glUniform4f(getUniformLocation("uColor2"), 0, 0, 0, 0);
-		GLES20.glUniform4f(getUniformLocation("uColor3"), 0, 0, 0, 0);
-		GLES20.glUniform4f(getUniformLocation("uColor4"), 0, 0, 0, 0);
+		GLES20.glUniform4f(getUniformLocation("uColor0"), 1, 0, 0, 1);
+		GLES20.glUniform4f(getUniformLocation("uColor1"), 0, 1, 0, 1);
+		GLES20.glUniform4f(getUniformLocation("uColor2"), 0, 0, 1, 1);
+		GLES20.glUniform4f(getUniformLocation("uColor3"), 0, 1, 0, 1);
+		GLES20.glUniform4f(getUniformLocation("uColor4"), 0, 0, 1, 1);
 	}
 }
