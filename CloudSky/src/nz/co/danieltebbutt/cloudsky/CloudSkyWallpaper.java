@@ -31,7 +31,10 @@ public class CloudSkyWallpaper extends Wallpaper {
 		mClouds.add(R.drawable.lightcloud4);
 		mClouds.add(R.drawable.lightcloud5);
 		mClouds.add(R.drawable.lightcloud6);
-			
+		
+		SunPositionCalculator calc = new SunPositionCalculator(12, 235, 12, 175.2833f, -37.7833f);
+		System.out.println(calc.angleFromSunToZenith() + " - " + calc.sunAzimuth() + " ST:" + calc.solarTime(12, 235, 12, 175.2833f) + " - " + calc.solarDeclination(235));
+		
 		return new WallpaperEngine(
 			PreferenceManager.getDefaultSharedPreferences(getApplicationContext()), 
 			getApplicationContext(), 
