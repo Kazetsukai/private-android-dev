@@ -15,7 +15,7 @@ public class SunPositionCalculator {
 		_longitude=(longitude);
 		_latitude=(latitude);
 		
-		System.out.println("AngleToZenith: " + calc.angleFromSunToZenith() + " - SunAzimuth: " + calc.sunAzimuth());
+		System.out.println("AngleToZenith: " + angleFromSunToZenith() + " - SunAzimuth: " + sunAzimuth());
 	}
 
 	/**
