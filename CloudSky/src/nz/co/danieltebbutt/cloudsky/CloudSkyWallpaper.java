@@ -34,6 +34,8 @@ public class CloudSkyWallpaper extends Wallpaper {
 		
 		SunPositionCalculator calc = new SunPositionCalculator(12, 235, 12, 175.2833f, -37.7833f);
 		
+		SkyColourCalculator colourCalc = new SkyColourCalculator(calc.);
+		
 		return new WallpaperEngine(
 			PreferenceManager.getDefaultSharedPreferences(getApplicationContext()), 
 			getApplicationContext(), 
