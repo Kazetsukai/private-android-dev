@@ -47,16 +47,17 @@ public class CloudSkyRenderer extends RajawaliRenderer {
 	private TextureInfo mBackgroundTexture;
 	
 	private Map<Cloud, Plane> mCloudPlanes;
+	private SkyPlane mBackgroundPlane;
 
 	private Camera2D mCamera;
 
 	private long mLastMilliseconds = 0;
 
-	private class PlaneComparator implements Comparator<BaseObject3D> {
+	private class BaseObject3DComparator implements Comparator<BaseObject3D> {
 
 		@Override
 		public int compare(BaseObject3D lhs, BaseObject3D rhs) {
-			return ((Float)((Plane)lhs).getZ()).compareTo(((Plane)rhs).getZ());
+			return ((Float)((BaseObject3D)lhs).getZ()).compareTo(((BaseObject3D)rhs).getZ());
 		}
 	
 	}
@@ -81,6 +82,9 @@ public class CloudSkyRenderer extends RajawaliRenderer {
 		if (elapsedTimeSinceLastFrame < 0.0) elapsedTimeSinceLastFrame = 0.0;
 		if (elapsedTimeSinceLastFrame > 0.05) elapsedTimeSinceLastFrame = 0.05;
 		mLastMilliseconds = milliseconds;
+		
+		mBackgroundPlane.setColors((float) (5 + Math.sin(SystemClock.uptimeMillis() / 1000.0)));
+		mBackgroundPlane.updateColors();
 		
 	    if (mCloudScene.update(elapsedTimeSinceLastFrame)) {
 			// Sort the clouds
@@ -133,14 +137,14 @@ public class CloudSkyRenderer extends RajawaliRenderer {
 		for (int i = 0; i < length; i++)
 			objects.add(children.get(i));
 		
-		Collections.sort(objects, new PlaneComparator() { });
+		Collections.sort(objects, new BaseObject3DComparator() { });
 		
 		clearChildren();
 		
 		length = objects.size();
 		for (int i = 0; i < length; i++) {
 			addChild(objects.get(i));
-			System.out.println(((Plane)objects.get(i)).getZ());
+			System.out.println(objects.get(i).getZ());
 		}
 	}
 	
@@ -206,12 +210,12 @@ public class CloudSkyRenderer extends RajawaliRenderer {
 	}
 	
 	private void createBackgroundPlane() {
-		TextureInfo texture = mBackgroundTexture;
-		Plane plane = new Plane(1, 1, 40, 40);
-		AMaterial material = new SkyColorMaterial();
-		plane.setMaterial(material);
-		plane.addTexture(texture);
+		SkyPlane plane = new SkyPlane(1, 1, 40, 40);
+		mBackgroundPlane = plane;
 		plane.setPosition(0, 0, -2);
+		AMaterial material = new SimpleMaterial();
+		material.setUseColor(true);
+		plane.setMaterial(material);
 		addChild(plane);
 	}
 	

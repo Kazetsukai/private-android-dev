@@ -14,6 +14,7 @@ import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Debug;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.view.SurfaceHolder;
@@ -32,9 +33,7 @@ public class CloudSkyWallpaper extends Wallpaper {
 		mClouds.add(R.drawable.lightcloud5);
 		mClouds.add(R.drawable.lightcloud6);
 		
-		SunPositionCalculator calc = new SunPositionCalculator(12, 235, 12, 175.2833f, -37.7833f);
-		
-		SkyColourCalculator colourCalc = new SkyColourCalculator(calc.);
+		//Debug.waitForDebugger();
 		
 		return new WallpaperEngine(
 			PreferenceManager.getDefaultSharedPreferences(getApplicationContext()), 
