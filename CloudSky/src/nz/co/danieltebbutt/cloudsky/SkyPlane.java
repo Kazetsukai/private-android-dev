@@ -2,6 +2,7 @@ package nz.co.danieltebbutt.cloudsky;
 
 import android.opengl.GLES20;
 import rajawali.BaseObject3D;
+import rajawali.Geometry3D;
 
 public class SkyPlane extends BaseObject3D {
 
@@ -117,6 +118,12 @@ public class SkyPlane extends BaseObject3D {
 	}
 	
 	public void updateColors() {
+		Geometry3D geom = getGeometry();
+		
 		mGeometry.setColors(_colors);
+		
+		GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, geom.getColorBufferInfo().bufferHandle);
+		GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, geom.getColors().limit() * geom.FLOAT_SIZE_BYTES, geom.getColors(), GLES20.GL_STATIC_DRAW);
+		GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
 	}
 }
