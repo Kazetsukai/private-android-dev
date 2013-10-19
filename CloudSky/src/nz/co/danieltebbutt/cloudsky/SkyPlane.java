@@ -100,10 +100,10 @@ public class SkyPlane extends BaseObject3D {
 			for (j = 0; j <= mSegmentsH; j++) {
 				
 				float theta = j / (float)mSegmentsH;
-				float gamma = (i - mSegmentsW / 3) / ((float)mSegmentsW * 3);
+				float gamma = (i - mSegmentsW / 3f) / ((float)mSegmentsW * 3);
 				_colourCalc.setDirections(theta, gamma);
 				
-				float lum = _colourCalc.getLuminance() / 60.f;
+				float lum = _colourCalc.getLuminance() / 100.f;
 				if (lum >= 1.0f) lum = 1.0f;
 				if (lum >= 1.0f) lum = 1.0f;
 				
@@ -125,5 +125,13 @@ public class SkyPlane extends BaseObject3D {
 		GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, geom.getColorBufferInfo().bufferHandle);
 		GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, geom.getColors().limit() * geom.FLOAT_SIZE_BYTES, geom.getColors(), GLES20.GL_STATIC_DRAW);
 		GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
+	}
+
+	public SunPositionCalculator getSunPositionCalculator() {
+		return _calc;
+	}
+	
+	public SkyColourCalculator getSkyColourCalculator() {
+		return _colourCalc;
 	}
 }

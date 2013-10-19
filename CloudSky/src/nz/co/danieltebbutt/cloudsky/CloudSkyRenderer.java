@@ -83,7 +83,8 @@ public class CloudSkyRenderer extends RajawaliRenderer {
 		if (elapsedTimeSinceLastFrame > 0.05) elapsedTimeSinceLastFrame = 0.05;
 		mLastMilliseconds = milliseconds;
 		
-		mBackgroundPlane.setColors((float) (5 + Math.sin(SystemClock.uptimeMillis() / 1000.0)));
+		mBackgroundPlane.getSunPositionCalculator().set_standardTime(((SystemClock.uptimeMillis() / 10) % 100) / 100.0f);
+		mBackgroundPlane.setColors(2);
 		mBackgroundPlane.updateColors();
 		
 	    if (mCloudScene.update(elapsedTimeSinceLastFrame)) {
