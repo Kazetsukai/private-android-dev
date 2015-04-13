@@ -1,7 +1,9 @@
-Private Android Dev
-===================
+Android Dev
+===========
 
-This is where I keep my Android work that I have intent to sell.
+This is where I used to keep my Android work that I intended to sell.
+
+EDIT: No longer private. Opening it up.
 
 Current Projects
 ----------------
